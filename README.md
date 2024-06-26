@@ -18,7 +18,9 @@ can still enjoy in 20 years. This tool will help you do that.
 
 1. Do you already have a user token for your workspace? If not, read on below on how to get a token.
 2. Make sure you have [`node` and `npm`](https://nodejs.org/en/) installed, ideally something newer than Node v14.
-3. Run `slack-archive`, which will interactively guide you through the options.
+3. Run `yarn install` to install dependencies
+4. Run `yarn prepublishOnly` to compile the project
+5. Run `npx slack-archive`, which will interactively guide you through the options.
 
 ```sh
 npx slack-archive
