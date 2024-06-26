@@ -39,6 +39,10 @@ npx slack-archive
 --force-html-generation:    Force regeneration of HTML files. Useful after slack-archive upgrades.
 ```
 
+## Making changes to the code
+
+When you've updated something within /src or /static, just run `yarn prepublishOnly` again to regenerate the built app, then `npx slack-archive` to execute it.
+
 ## Getting a token
 
 In order to download messages from private channels and direct messages, we will need a "user
@@ -110,3 +114,5 @@ https://{your-team-name}.slack.com/api/oauth.access?client_id={your-client-id}&c
 ```
 
 Your browser should now be returning some JSON including a token. Make a note of it - that's what we'll use.
+
+When you start the app, you can copy-paste that token into the prompt. You can also `export SLACK_TOKEN={token}` to set an environment variable that will be used instead.

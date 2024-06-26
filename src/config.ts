@@ -39,7 +39,7 @@ export const NO_SEARCH = findCliParameter("--no-search");
 export const NO_FILE_DOWNLOAD = findCliParameter("--no-file-download");
 export const NO_SLACK_CONNECT = findCliParameter("--no-slack-connect");
 export const FORCE_HTML_GENERATION = findCliParameter(
-  "--force-html-generation"
+  "--force-html-generation",
 );
 export const BASE_DIR = process.cwd();
 export const OUT_DIR = path.join(BASE_DIR, "slack-archive");
@@ -56,14 +56,14 @@ export const SEARCH_PATH = path.join(OUT_DIR, "search.html");
 export const MESSAGES_JS_PATH = path.join(__dirname, "../static/scroll.js");
 export const SEARCH_TEMPLATE_PATH = path.join(
   __dirname,
-  "../static/search.html"
+  "../static/search.html",
 );
 export const CHANNELS_DATA_PATH = path.join(DATA_DIR, "channels.json");
 export const USERS_DATA_PATH = path.join(DATA_DIR, "users.json");
 export const EMOJIS_DATA_PATH = path.join(DATA_DIR, "emojis.json");
 export const SLACK_ARCHIVE_DATA_PATH = path.join(
   DATA_DIR,
-  "slack-archive.json"
+  "slack-archive.json",
 );
 export const SEARCH_DATA_PATH = path.join(DATA_DIR, "search.js");
 

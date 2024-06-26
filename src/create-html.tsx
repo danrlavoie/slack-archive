@@ -192,6 +192,11 @@ const Message: React.FunctionComponent<MessageProps> = (props) => {
     user: ({ id }: { id: string }) => `@${getName(id, users)}`,
   };
 
+  // Usually only 1 attachment per message, but newest is first
+  const attachments = message.attachments
+    ?.map((attachment) => <Attachment key={attachment.id} {...attachment} />)
+    .reverse();
+
   return (
     <div className="message-gutter" id={message.ts}>
       <div className="" data-stringify-ignore="true">
@@ -203,17 +208,64 @@ const Message: React.FunctionComponent<MessageProps> = (props) => {
           <span className="c-timestamp__label">{formatTimestamp(message)}</span>
         </span>
         <br />
-        <div
-          className="text"
-          dangerouslySetInnerHTML={{
-            __html: slackMarkdown.toHTML(message.text, {
-              escapeHTML: false,
-              slackCallbacks,
-            }),
-          }}
-        />
-        {props.children}
+        <div>
+          <div
+            className="text"
+            dangerouslySetInnerHTML={{
+              __html: slackMarkdown.toHTML(message.text, {
+                escapeHTML: false,
+                slackCallbacks,
+              }),
+            }}
+          />
+          {props.children}
+        </div>
+        {attachments}
       </div>
+    </div>
+  );
+};
+
+interface AttachmentProps {
+  service_icon?: string;
+  service_name?: string;
+  title?: string;
+  title_link?: string;
+  image_url?: string;
+  thumb_url?: string;
+  text?: string;
+}
+const Attachment: React.FunctionComponent<AttachmentProps> = (props) => {
+  const {
+    service_icon,
+    service_name,
+    title,
+    title_link,
+    image_url,
+    thumb_url,
+    text,
+  } = props;
+
+  let imageContent;
+  if (!!image_url) {
+    imageContent = <img className="attachment-image" src={image_url} />;
+  } else if (!!thumb_url) {
+    imageContent = <img className="attachment-image" src={thumb_url} />;
+  }
+
+  return (
+    <div className="attachment-gutter">
+      <div className="attachment-service">
+        <img className="attachment-service-icon" src={service_icon} />
+        <span className="attachment-service-name"><strong>{service_name}</strong></span>
+      </div>
+      <div>
+        <a href={title_link} target="_blank">
+          {title}
+        </a>
+      </div>
+      <div className="text">{text}</div>
+      {imageContent}
     </div>
   );
 };
@@ -313,7 +365,7 @@ const IndexPage: React.FunctionComponent<IndexPageProps> = (props) => {
 
   const dmChannels = sortedChannels
     .filter(
-      (channel) => isDmChannel(channel, users) && !users[channel.user!].deleted
+      (channel) => isDmChannel(channel, users) && !users[channel.user!].deleted,
     )
     .sort((a, b) => {
       // Self first
@@ -328,7 +380,7 @@ const IndexPage: React.FunctionComponent<IndexPageProps> = (props) => {
 
   const dmDeletedChannels = sortedChannels
     .filter(
-      (channel) => isDmChannel(channel, users) && users[channel.user!].deleted
+      (channel) => isDmChannel(channel, users) && users[channel.user!].deleted,
     )
     .sort((a, b) => (a.name || "Unknown").localeCompare(b.name || "Unknown"))
     .map((channel) => <ChannelLink key={channel.id} channel={channel} />);
@@ -479,7 +531,7 @@ const Pagination: React.FunctionComponent<PaginationProps> = (props) => {
     options.push(
       <option selected={selected} key={value} value={value}>
         {text}
-      </option>
+      </option>,
     );
   }
 
@@ -554,7 +606,7 @@ async function renderAndWrite(page: JSX.Element, filePath: string) {
 
 export async function getChannelsToCreateFilesFor(
   channels: Array<Channel>,
-  newMessages: Record<string, number>
+  newMessages: Record<string, number>,
 ) {
   const result: Array<Channel> = [];
 
@@ -593,7 +645,7 @@ async function createHtmlForChannel({
   const messages = await getMessages(channel.id!, true);
   const chunks = chunk(messages, MESSAGE_CHUNK);
   const spinner = ora(
-    `Rendering HTML for ${i + 1}/${total} ${channel.name || channel.id}`
+    `Rendering HTML for ${i + 1}/${total} ${channel.name || channel.id}`,
   ).start();
 
   // Calculate info about all chunks
@@ -614,7 +666,7 @@ async function createHtmlForChannel({
         chunkIndex: 0,
         chunksInfo: chunksInfo,
       },
-      spinner
+      spinner,
     );
   }
 
@@ -626,12 +678,12 @@ async function createHtmlForChannel({
         chunkIndex: chunkI,
         chunksInfo,
       },
-      spinner
+      spinner,
     );
   }
 
   spinner.succeed(
-    `Rendered HTML for ${i + 1}/${total} ${channel.name || channel.id}`
+    `Rendered HTML for ${i + 1}/${total} ${channel.name || channel.id}`,
   );
 }
 

@@ -67,7 +67,7 @@ async function selectMergeFiles(): Promise<boolean> {
 }
 
 async function selectChannels(
-  channels: Array<Channel>
+  channels: Array<Channel>,
 ): Promise<Array<Channel>> {
   const choices = channels.map((channel) => ({
     name: channel.name || channel.id || "Unknown",
@@ -112,7 +112,7 @@ async function selectChannelTypes(): Promise<Array<string>> {
   ];
 
   if (CHANNEL_TYPES) {
-    return CHANNEL_TYPES.split(',');
+    return CHANNEL_TYPES.split(",");
   }
 
   if (AUTOMATIC_MODE || NO_SLACK_CONNECT) {
@@ -198,13 +198,13 @@ async function getAuthTest() {
     spinner.fail(`Authentication with Slack failed.`);
 
     console.log(
-      `Authentication with Slack failed. The error was: ${result.error}`
+      `Authentication with Slack failed. The error was: ${result.error}`,
     );
     console.log(
-      `The provided token was ${config.token}. Double-check the token and try again.`
+      `The provided token was ${config.token}. Double-check the token and try again.`,
     );
     console.log(
-      `For more information on the error code, see the error table at https://api.slack.com/methods/auth.test`
+      `For more information on the error code, see the error table at https://api.slack.com/methods/auth.test`,
     );
     console.log(`This tool will now exit.`);
 
@@ -261,7 +261,7 @@ export async function main() {
   // - or channels that we didn't make HTML for yet
   const channelsToCreateFilesFor = await getChannelsToCreateFilesFor(
     selectedChannels,
-    newMessages
+    newMessages,
   );
   await createHtmlForChannels(channelsToCreateFilesFor);
 
@@ -295,7 +295,7 @@ export async function main() {
       let downloadData = await downloadMessages(
         channel,
         i,
-        selectedChannels.length
+        selectedChannels.length,
       );
       let result = downloadData.messages;
       newMessages[channel.id] = downloadData.new;
@@ -306,7 +306,7 @@ export async function main() {
 
       // Sort messages
       const spinner = ora(
-        `Saving message data for ${channel.name || channel.id} to disk`
+        `Saving message data for ${channel.name || channel.id} to disk`,
       ).start();
       spinner.render();
 
@@ -318,7 +318,7 @@ export async function main() {
       await writeAndMerge(USERS_DATA_PATH, users);
       fs.outputFileSync(
         getChannelDataFilePath(channel.id),
-        JSON.stringify(result, undefined, 2)
+        JSON.stringify(result, undefined, 2),
       );
 
       // Download files. This needs to run after the messages are saved to disk
