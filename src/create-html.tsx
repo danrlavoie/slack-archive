@@ -192,10 +192,8 @@ const Message: React.FunctionComponent<MessageProps> = (props) => {
     user: ({ id }: { id: string }) => `@${getName(id, users)}`,
   };
 
-  // Usually only 1 attachment per message, but newest is first
   const attachments = message.attachments
-    ?.map((attachment) => <Attachment key={attachment.id} {...attachment} />)
-    .reverse();
+    ?.map((attachment) => <Attachment key={attachment.id} {...attachment} />);
 
   return (
     <div className="message-gutter" id={message.ts}>
