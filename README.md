@@ -116,3 +116,25 @@ https://{your-team-name}.slack.com/api/oauth.access?client_id={your-client-id}&c
 Your browser should now be returning some JSON including a token. Make a note of it - that's what we'll use.
 
 When you start the app, you can copy-paste that token into the prompt. You can also `export SLACK_TOKEN={token}` to set an environment variable that will be used instead.
+
+## Automating it
+
+Three shell scripts are provided to allow for automating the archive, backup, and cleanup in cycles.
+
+### exec_archive.sh
+
+This runs the archive process in automatic mode, assuming it has a SLACK_TOKEN available in the environment where it runs. Results are stored within the git repo in the /slack-archive folder.
+
+### backup.sh
+
+This copies the current contents of the repo's /slack-archive folder to $home/slack-archive/slack-archive-YYYY-MM-DD, a date assigned to the date the backup was run (NOT the date the archive was initiallhy taken).
+
+### cleanup.sh
+
+Since Slack archives, with media files included, can take up several gigabytes of storage, this removes old archives. It will only execute if it finds 8 or more backups in the backup directory, and it deletes the oldest backup from disk.
+
+### Putting it together
+
+Set up invocations of exec_archive.sh, backup.sh, and cleanup.sh into a crontab so you're protected in the event the Slack API breaks at some point.
+
+Then, host your current copy of slack-archive on a webserver (i.e. with nginx) if you want to view it from a local network.
