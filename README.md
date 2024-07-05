@@ -138,3 +138,17 @@ Since Slack archives, with media files included, can take up several gigabytes o
 Set up invocations of exec_archive.sh, backup.sh, and cleanup.sh into a crontab so you're protected in the event the Slack API breaks at some point.
 
 Then, host your current copy of slack-archive on a webserver (i.e. with nginx) if you want to view it from a local network.
+
+## Hosting with nginx
+
+Since nginx runs through systemctl, you can start and restart the service with the root crontab:
+
+```
+sudo crontab -e
+# in the crontab
+@hourly systemctl restart nginx
+```
+
+copy archive-nginx.conf to /etc/nginx/conf.d/archive-nginx.conf and ensure the exec_archive.sh script has executed, to copy your slack archive website to /var/www/slack-archive.
+
+Check your firewall to ensure your preferred security settings are in place, and start nginx to begin serving the website.

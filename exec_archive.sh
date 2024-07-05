@@ -10,4 +10,8 @@ fi
 repo_dirname=$(dirname $(readlink -f "$0"))
 cd $repo_dirname
 npx slack-archive --automatic
+# Remove old copy of the website
+rm -rf /var/www/slack-archive
+# Stage new copy of the website
+cp -a $repo_dirname/slack-archive/. /var/www/slack-archive/
 cd -
