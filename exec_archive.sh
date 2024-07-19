@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # This script assumes you're setting up a node environment with nvm
 # If you plan to cron it, you must have some sort of node executable in the PATH used by cron.
 # Load nvm
