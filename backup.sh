@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Usage:
 # ./backup.sh
@@ -12,5 +12,11 @@ date=$(date '+%Y-%m-%d')
 if [ ! -d "$repo_dirname/slack-archive" ]; then
   exit
 fi
+if [[ -n $DEBUG_OUTPUT ]]; then
+  echo "Making directory for $date"
+fi
 mkdir -p $HOME/slack-archive-backup/slack-archive-$date
 cp -a $repo_dirname/slack-archive/. $_/
+if [[ -n $DEBUG_OUTPUT ]]; then
+  echo "Finished copying files."
+fi
