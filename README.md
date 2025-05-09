@@ -30,8 +30,10 @@ npx slack-archive
 
 ```
 --automatic:                Don't prompt and automatically fetch all messages from all channels.
+--use-previous-channel-config: Fetch messages from channels selected in previous run instead of prompting.
 --channel-types             Comma-separated list of channel types to fetch messages from.
                             (public_channel, private_channel, mpim, im)
+--exclude-channels          Comma-separated list of channels to exclude, in automatic mode
 --no-backup:                Don't create backups. Not recommended.
 --no-search:                Don't create a search file, saving disk space.
 --no-file-download:         Don't download files.
@@ -110,12 +112,50 @@ from the first step when we created your app. In a browser, open this URL - repl
 your values.
 
 ```
-https://{your-team-name}.slack.com/api/oauth.access?client_id={your-client-id}&client_secret={your-client-secret}&code={your-code}"
+https://{your-team-name}.slack.com/api/oauth.access?client_id={your-client-id}&client_secret={your-client-secret}&code={your-code}
 ```
 
 Your browser should now be returning some JSON including a token. Make a note of it - that's what we'll use.
 
 When you start the app, you can copy-paste that token into the prompt. You can also `export SLACK_TOKEN={token}` to set an environment variable that will be used instead.
+
+## Automating it
+
+Three shell scripts are provided to allow for automating the archive, backup, and cleanup in cycles.
+
+### exec_archive.sh
+
+This runs the archive process in automatic mode, assuming it has a SLACK_TOKEN available in the environment where it runs. Results are stored within the git repo in the /slack-archive folder.
+
+### backup.sh
+
+This copies the current contents of the repo's /slack-archive folder to $home/slack-archive/slack-archive-YYYY-MM-DD, a date assigned to the date the backup was run (NOT the date the archive was initiallhy taken).
+
+### cleanup.sh
+
+Since Slack archives, with media files included, can take up several gigabytes of storage, this removes old archives. It will only execute if it finds 8 or more backups in the backup directory, and it deletes the oldest backup from disk.
+
+### Putting it together
+
+Set up invocations of exec_archive.sh, backup.sh, and cleanup.sh into a crontab so you're protected in the event the Slack API breaks at some point.
+
+Then, host your current copy of slack-archive on a webserver (i.e. with nginx) if you want to view it from a local network.
+
+## Hosting with nginx
+
+Since nginx runs through systemctl, you can start and restart the service with the root crontab:
+
+```
+sudo crontab -e
+# in the crontab
+@hourly systemctl restart nginx
+```
+
+copy archive-nginx.conf to /etc/nginx/conf.d/archive-nginx.conf and ensure the exec_archive.sh script has executed, to copy your slack archive website to /var/www/slack-archive.
+
+Check your firewall to ensure your preferred security settings are in place, and start nginx to begin serving the website.
+
+When you start the app, you can paste it in the command line, OR create a file called `.token` in the slack-archive directory (created when the command is first run) and paste it in there. You can also `export SLACK_TOKEN={token}` to set an environment variable that will be used instead.
 
 ## Automating it
 
