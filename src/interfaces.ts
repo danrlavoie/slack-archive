@@ -1,4 +1,4 @@
-import { Message as SlackMessage } from "@slack/web-api/dist/response/ConversationsHistoryResponse";
+import { MessageElement as SlackMessage, FileElement } from "@slack/web-api/dist/response/ConversationsHistoryResponse";
 import { Channel as SlackChannel } from "@slack/web-api/dist/response/ConversationsListResponse";
 import { User as SlackUser } from "@slack/web-api/dist/response/UsersInfoResponse";
 import { File as SlackFile } from "@slack/web-api/dist/response/FilesInfoResponse";
@@ -21,7 +21,7 @@ export type Message = SlackMessage;
 
 export type Channel = SlackChannel;
 
-export type File = SlackFile;
+export type File = FileElement;
 
 export type SearchPageIndex = Record<string, Array<string>>;
 

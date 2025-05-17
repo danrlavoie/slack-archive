@@ -712,21 +712,3 @@ export async function createHtmlForChannels(channels: Array<Channel> = []) {
 if (esMain(import.meta)) {
   createHtmlForChannels();
 }
-
-const Page: React.FunctionComponent = (props) => {
-
-  return(
-    <div>
-      <NavBar></NavBar>
-      <HeaderPane></HeaderPane>
-      <MessagePane></MessagePane>
-    </div>
-  )
-};
-
-const NavBar: React.FunctionComponent = (props) => {
-
-  return(
-    
-  )
-}
