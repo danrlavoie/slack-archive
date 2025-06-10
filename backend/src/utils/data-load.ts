@@ -1,0 +1,57 @@
+import fs from 'fs-extra';
+import { 
+  CHANNELS_DATA_PATH, 
+  EMOJIS_DATA_PATH, 
+  getChannelDataFilePath, 
+  SEARCH_DATA_PATH, 
+  USERS_DATA_PATH 
+} from '../config.js';
+import { SlackMessage, SlackUser, SlackChannel, SearchData } from '../types/slack.js';
+
+export const messagesCache: Record<string, SlackMessage[]> = {};
+
+async function getFile<T>(filePath: string, returnIfEmpty: T): Promise<T> {
+  if (!fs.existsSync(filePath)) {
+    return returnIfEmpty;
+  }
+  const data = await readJSON<T>(filePath);
+  return data;
+}
+
+export async function getMessages(channelId: string, cachedOk = false): Promise<SlackMessage[]> {
+  if (cachedOk && messagesCache[channelId]) {
+    return messagesCache[channelId];
+  }
+  const filePath = getChannelDataFilePath(channelId);
+  messagesCache[channelId] = await getFile<SlackMessage[]>(filePath, []);
+  return messagesCache[channelId];
+}
+
+export async function getUsers(): Promise<Record<string, SlackUser>> {
+  return getFile(USERS_DATA_PATH, {});
+}
+
+export async function getEmoji(): Promise<Record<string, string>> {
+  return getFile(EMOJIS_DATA_PATH, {});
+}
+
+export async function getChannels(): Promise<SlackChannel[]> {
+  return getFile(CHANNELS_DATA_PATH, []);
+}
+
+export async function getSearchFile(): Promise<SearchData> {
+  const returnIfEmpty: SearchData = { users: {}, channels: {}, messages: {}, pages: {} };
+  if (!fs.existsSync(SEARCH_DATA_PATH)) {
+    return returnIfEmpty;
+  }
+  const contents = await readFile(SEARCH_DATA_PATH, 'utf8');
+  return JSON.parse(contents.slice(21, contents.length - 1));
+}
+
+export async function readFile(filePath: string, encoding: BufferEncoding = 'utf8'): Promise<string> {
+  return fs.readFile(filePath, encoding);
+}
+
+export async function readJSON<T>(filePath: string): Promise<T> {
+  return fs.readJSON(filePath);
+}
