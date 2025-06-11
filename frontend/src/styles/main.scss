@@ -1,6 +1,4 @@
 /* Reset */
-
-/* Box sizing rules */
 *,
 *::before,
 *::after {
@@ -21,37 +19,39 @@ dd {
   margin: 0;
 }
 
-/* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
 ul[role='list'],
 ol[role='list'] {
   list-style: none;
 }
 
-/* Set core root defaults */
-html:focus-within {
-  scroll-behavior: smooth;
+html {
+  &:focus-within {
+    scroll-behavior: smooth;
+  }
 }
 
-/* Set core body defaults */
 body {
   min-height: 100vh;
   text-rendering: optimizeSpeed;
   line-height: 1.5;
+  font-family: 'Lato', sans-serif;
+  font-size: 14px;
+  color: rgb(29, 28, 29);
 }
 
-/* A elements that don't have a class get default styles */
-a:not([class]) {
-  text-decoration-skip-ink: auto;
+a {
+  &:not([class]) {
+    text-decoration-skip-ink: auto;
+  }
+  color: rgb(18, 100, 163);
 }
 
-/* Make images easier to work with */
 img,
 picture {
   max-width: 100%;
   display: block;
 }
 
-/* Inherit fonts for inputs and buttons */
 input,
 button,
 textarea,
@@ -59,10 +59,9 @@ select {
   font: inherit;
 }
 
-/* Remove all animations, transitions and smooth scroll for people that prefer not to see them */
 @media (prefers-reduced-motion: reduce) {
   html:focus-within {
-   scroll-behavior: auto;
+    scroll-behavior: auto;
   }
   
   *,
@@ -75,7 +74,6 @@ select {
   }
 }
 
-/* Update font paths */
 @font-face {
   font-family: "Lato";
   src: url('/fonts/Lato-Regular.ttf') format('truetype');
@@ -90,76 +88,68 @@ select {
   font-style: normal;
 }
 
-body, html {
-  font-family: 'Lato', sans-serif;
-  font-size: 14px;
-  color: rgb(29, 28, 29);
-}
-
-a {
-  color: rgb(18, 100, 163);
-}
-
 audio, video {
   max-width: 400px;
 }
 
 .messages-list {
   padding-bottom: 20px;
-}
 
-.messages-list .avatar {
-  height: 36px;
-  width: 36px;
-  border-radius: 7px;
-  margin-right: 10px;
-  background: #c1c1c1;
+  .avatar {
+    height: 36px;
+    width: 36px;
+    border-radius: 7px;
+    margin-right: 10px;
+    background: #c1c1c1;
+  }
 }
 
 .message-gutter {
   display: flex;
   margin: 10px;
   scroll-margin-top: 120px;
+
+  &:target {
+    background-color: #fafafa;
+    border: 2px solid #39113E;
+    padding: 10px;
+    border-radius: 5px; 
+  }
+
+  div:first-of-type {
+    flex-shrink: 0;
+  }
+
+  > .message-gutter {
+    /* i.e. replies in thread. Just here to be easily findable */
+  }
 }
 
-.message-gutter:target {
-  background-color: #fafafa;
-  border: 2px solid #39113E;
-  padding: 10px;
-  border-radius: 5px; 
-}
+.attachment {
+  &-gutter {
+    border-left: 4px solid lightgray;
+    border-radius: 2px;
+    padding-left: 8px;
+  }
 
-.message-gutter div:first-of-type {
-  flex-shrink: 0;
-}
+  &-service {
+    display: flex;
 
-.message-gutter > .message-gutter {
-  /** i.e. replies in thread. Just here to be easily findable */
-}
+    &-icon {
+      height: 25px;
+      width: 25px;
+    }
 
-.attachment-gutter {
-  border-left: 4px solid lightgray;
-  border-radius: 2px;
-  padding-left: 8px;
-}
+    &-name {
+      padding-left: 8px;
+    }
+  }
 
-.attachment-service {
-  display: flex;
-}
-
-.attachment-service-icon {
-  height: 25px;
-  width: 25px;
-}
-
-.attachment-service-name {
-  padding-left: 8px;
-}
-
-.attachment-image {
-  max-height: 200px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  &-image {
+    max-height: 200px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
 }
 
 .sender {
@@ -183,32 +173,32 @@ audio, video {
   min-height: 70px;
   border-bottom: 1px solid #E2E2E2;
   box-sizing: border-box;
-}
 
-.header h1 {
-  font-size: 16px;
-  color: #1D1C1D;
-  display: inline-block;
-}
+  h1 {
+    font-size: 16px;
+    color: #1D1C1D;
+    display: inline-block;
+  }
 
-.header a {
-  color: #616061;
-}
+  a {
+    color: #616061;
+    
+    &:active, &.current {
+      color: #000;
+    }
+  }
 
-.header a:active, .header a.current {
-  color: #000;
-}
-
-.header .created {
-  float: right;
+  .created {
+    float: right;
+  }
 }
 
 .jumper {
   display: inline-block;
-}
 
-.jumper a {
-  margin: 2px;
+  a {
+    margin: 2px;
+  }
 }
 
 .text {
@@ -229,24 +219,21 @@ audio, video {
   display: inline-block;
   border-radius: 10px;
   font-size: .7em;
-  padding-left: 6px;
-  padding-right: 6px;
-  padding-bottom: 4px;
+  padding: 4px 6px;
   margin-right: 5px;
-  padding-top: 4px;
-}
 
-.reaction img {
-  height: 16px;
-  width: 16px;
-  margin-right: 3px;
-  vertical-align: middle;
-  display: inline-block;
-}
+  img {
+    height: 16px;
+    width: 16px;
+    margin-right: 3px;
+    vertical-align: middle;
+    display: inline-block;
+  }
 
-.reaction span {
-  position: relative;
-  top: 1px;
+  span {
+    position: relative;
+    top: 1px;
+  }
 }
 
 #index {
@@ -258,62 +245,57 @@ audio, video {
   background: #39113E;
   width: 250px;
   color: #CDC3CE;
-  padding-top: 10px;
+  padding: 10px 0 20px;
   overflow: scroll;
-  padding-bottom: 20px;
-}
 
-#channels ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
 
-#channels p {
-  padding-left: 20px;
-}
+  p {
+    padding-left: 20px;
+  }
 
-#channels .section {
-  font-weight: 800;
-  color: #fff;
-  margin-top: 10px;
-}
+  .section {
+    font-weight: 800;
+    color: #fff;
+    margin-top: 10px;
 
-#channels .section:first-of-type {
-  margin-top: 0;
-}
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
 
-#channels a {
-  padding: 5px;
-  display: block;
-  color: #CDC3CE;
-  text-decoration: none;
-  padding-left: 20px;
-  display: flex;
-  max-height: 28px;
-  white-space: pre;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
+  a {
+    padding: 5px 5px 5px 20px;
+    display: flex;
+    color: #CDC3CE;
+    text-decoration: none;
+    max-height: 28px;
+    white-space: pre;
+    text-overflow: ellipsis;
+    overflow: hidden;
 
-#channels a .avatar {
-  height: 20px;
-  width: 20px;
-  border-radius: 3px;
-  margin-right: 10px;
-  object-fit: contain;
-}
+    .avatar {
+      height: 20px;
+      width: 20px;
+      border-radius: 3px;
+      margin-right: 10px;
+      object-fit: contain;
+    }
 
-#channels a:hover {
-  background: #301034;
-  color: #edeced;
+    &:hover {
+      background: #301034;
+      color: #edeced;
+    }
+  }
 }
 
 #messages {
   flex-grow: 1;
-}
-
-#messages iframe {
+  background-color: #fff;
   height: 100%;
   width: calc(100vw - 250px);
   border: none;
@@ -322,26 +304,26 @@ audio, video {
 #search {
   margin: 10px;
   text-align: center;
-}
 
-#search ul {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+  ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-#search li {
-  padding: 5px;
-  border-bottom: 1px solid #E2E2E2;
-  background: hsl(0deg 0% 98%);
-  border-radius: 5px;
-  width: 600px;
-  text-align: left;
-  margin-bottom: 5px;
-}
+  li {
+    padding: 5px;
+    border-bottom: 1px solid #E2E2E2;
+    background: hsl(0deg 0% 98%);
+    border-radius: 5px;
+    width: 600px;
+    text-align: left;
+    margin-bottom: 5px;
+  }
 
-#search a {
-  text-decoration: none;
-  color: unset;
+  a {
+    text-decoration: none;
+    color: unset;
+  }
 }

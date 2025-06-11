@@ -28,6 +28,7 @@ export interface Message {
   user: string;
   files?: Array<any>;
   reactions?: Array<any>;
+  thread_ts?: string;
   replies?: Array<Message>;
   attachments?: Array<any>;
 }

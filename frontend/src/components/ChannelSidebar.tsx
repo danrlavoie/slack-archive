@@ -26,7 +26,7 @@ const ChannelLink = ({ channel, users }: { channel: Channel; users: Users }) => 
           alt={users[channel.user!].name}
         />
       )}
-      <span>{channel.name}</span>
+      <span># {channel.name}</span>
     </Link>
   );
 };
