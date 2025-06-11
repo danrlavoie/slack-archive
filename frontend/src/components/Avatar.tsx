@@ -1,7 +1,7 @@
 import type { Users } from '../types/slack';
 
 interface AvatarProps {
-  userId: string;
+  userId?: string;
   users: Users;
 }
 

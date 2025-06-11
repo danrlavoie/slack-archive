@@ -1,27 +1,23 @@
-export interface Channel {
-  id?: string;
-  name?: string;
-  is_archived?: boolean;
-  is_im?: boolean;
-  is_mpim?: boolean;
-  is_private?: boolean;
-  topic?: {
-    value?: string;
-  };
-  creator?: string;
-  created?: number;
-  user?: string;
+import type { 
+  MessageElement as SlackMessage,
+  FileElement,
+} from "@slack/web-api/dist/response/ConversationsHistoryResponse";
+import type { Channel as SlackChannel } from "@slack/web-api/dist/response/ConversationsListResponse";
+import type { User as SlackUser } from "@slack/web-api/dist/response/UsersInfoResponse";
+import type { Reaction as SlackReaction } from "@slack/web-api/dist/response/ReactionsGetResponse";
+import type { AuthTestResponse } from "@slack/web-api";
+
+export type User = SlackUser;
+export type Channel = SlackChannel;
+export type Reaction = SlackReaction;
+export type File = FileElement;
+
+export interface Message extends SlackMessage {
+  replies?: Array<SlackMessage>;
+  thread_ts?: string;
 }
 
-export interface User {
-  id: string;
-  name: string;
-  profile?: {
-    image_512?: string;
-  };
-  deleted?: boolean;
-}
-
+// Keep our attachment interface as Slack's type is too restrictive
 export interface Attachment {
   id?: string;
   service_icon?: string;
@@ -31,16 +27,6 @@ export interface Attachment {
   image_url?: string;
   thumb_url?: string;
   text?: string;
-}
-
-export interface Message {
-  ts: string;
-  text: string;
-  user: string;
-  attachments?: Attachment[];
-  reactions?: Array<any>;
-  thread_ts?: string;
-  replies?: Array<Message>;
 }
 
 export interface Users {
@@ -54,7 +40,5 @@ export interface SlackArchiveData {
       fullyDownloaded?: boolean;
     };
   };
-  auth?: {
-    user_id?: string;
-  };
+  auth?: AuthTestResponse;
 }
