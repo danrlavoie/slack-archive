@@ -8,7 +8,7 @@ interface HeaderProps {
 export const Header = ({ channel, users }: HeaderProps) => {
   return (
     <div className="header">
-      <h1>#{channel.name}</h1>
+      <h1># {channel.name}</h1>
       {channel.topic?.value && (
         <p className="topic">{channel.topic.value}</p>
       )}

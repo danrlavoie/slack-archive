@@ -1,5 +1,6 @@
 import type { Message as MessageType, Users } from '../types/slack';
 import { Avatar } from './Avatar';
+import { Attachment } from './Attachment';
 import { formatTimestamp } from '../utils/timestamp';
 
 interface MessageProps {
@@ -10,6 +11,10 @@ interface MessageProps {
 export const Message = ({ message, users }: MessageProps) => {
   const user = users[message.user];
   
+  const attachments = message.attachments?.map((attachment) => (
+    <Attachment key={attachment.id} {...attachment} />
+  ));
+
   return (
     <div className="message-gutter" id={message.ts}>
       <div className="" data-stringify-ignore="true">
@@ -27,6 +32,7 @@ export const Message = ({ message, users }: MessageProps) => {
           <div className="text">
             {message.text}
           </div>
+          {attachments}
         </div>
       </div>
     </div>

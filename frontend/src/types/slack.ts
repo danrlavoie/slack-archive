@@ -22,15 +22,25 @@ export interface User {
   deleted?: boolean;
 }
 
+export interface Attachment {
+  id?: string;
+  service_icon?: string;
+  service_name?: string;
+  title?: string;
+  title_link?: string;
+  image_url?: string;
+  thumb_url?: string;
+  text?: string;
+}
+
 export interface Message {
   ts: string;
   text: string;
   user: string;
-  files?: Array<any>;
+  attachments?: Attachment[];
   reactions?: Array<any>;
   thread_ts?: string;
   replies?: Array<Message>;
-  attachments?: Array<any>;
 }
 
 export interface Users {
