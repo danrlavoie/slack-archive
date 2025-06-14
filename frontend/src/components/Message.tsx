@@ -4,6 +4,8 @@ import { Attachment } from './Attachment';
 import { formatTimestamp } from '../utils/timestamp';
 import { getName } from '../utils/users';
 import { SlackText } from './SlackText';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface MessageProps {
   message: MessageType;
@@ -22,7 +24,29 @@ interface MessageProps {
  */
 export const Message = ({ message, users }: MessageProps) => {
   const username = getName(message.user, users);
+  const navigate = useNavigate();
+  const location = useLocation();
   
+  // Handle clicking on timestamp
+  const handleTimestampClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const messageId = message.ts;
+    if (!messageId) return;
+    // Update URL with message timestamp
+    navigate(`${location.pathname}#${messageId}`, { replace: true });
+    // Scroll message into view
+    document.getElementById(messageId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Check if this message is targeted in URL on load
+  useEffect(() => {
+    const messageId = message.ts;
+    if (!messageId) return;
+    if (location.hash === `#${messageId}`) {
+      document.getElementById(messageId)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [location.hash, message.ts]);
+
   const attachments = message.attachments?.map((attachment) => (
     <Attachment key={attachment.id} {...attachment} />
   ));
@@ -34,8 +58,12 @@ export const Message = ({ message, users }: MessageProps) => {
       </div>
       <div className="">
         <span className="sender">{username}</span>
-        <span className="timestamp">
-           {formatTimestamp(message)}
+        <span 
+          className="timestamp" 
+          onClick={handleTimestampClick}
+          style={{ cursor: 'pointer' }}
+        >
+          {formatTimestamp(message)}
         </span>
         <br />
         <div>

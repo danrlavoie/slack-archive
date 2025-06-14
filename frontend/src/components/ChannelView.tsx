@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { getChannels, getMessages, getUsers } from '../api/slack';
 import { Header } from './Header';
 import { ParentMessage } from './ParentMessage';
+import { useEffect } from 'react';
 
 /**
  * ChannelView component displays the messages of a specific channel.
@@ -14,6 +15,7 @@ import { ParentMessage } from './ParentMessage';
  */
 export const ChannelView = () => {
   const { channelId } = useParams();
+  const location = useLocation();
 
   // Fetch messages for the current channel from the API
   const { isLoading: messagesLoading, data: messages = [] } = useQuery({
@@ -35,6 +37,14 @@ export const ChannelView = () => {
   });
   
   const channel = channels.find(c => c.id === channelId);
+
+  useEffect(() => {
+    // Scroll to message from URL hash after messages load
+    if (!messagesLoading && location.hash) {
+      const messageId = location.hash.slice(1); // Remove # from hash
+      document.getElementById(messageId)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messagesLoading, location.hash]);
 
   if (!channel) {
     return <div id="messages">Channel not found</div>;
