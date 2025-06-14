@@ -10,6 +10,15 @@ import {
   isPublicChannel,
 } from '../utils/channels';
 
+/**
+ * ChannelLink component renders a link to a specific channel.
+ * It highlights the link if the channel is currently active (i.e., the channelId matches).
+ * @param {Channel} channel - The channel object containing details like id, name, and user (for DMs).
+ * @param {Users} users - An object containing user profiles keyed by user ID.
+ * @returns {JSX.Element} - Returns a link to the channel with an avatar if it's a DM channel.
+ * @example
+ * <ChannelLink channel={channel} users={users} />
+ */
 const ChannelLink = ({ channel, users }: { channel: Channel; users: Users }) => {
   const { channelId } = useParams();
   const isActive = channelId === channel.id;
@@ -31,6 +40,15 @@ const ChannelLink = ({ channel, users }: { channel: Channel; users: Users }) => 
   );
 };
 
+/**
+ * ChannelSidebar component displays a sidebar with links to different types of channels.
+ * It sorts channels into categories as is done in the regular Slack UI.
+ * The channel links are then used to route to the specific channel view when clicked.
+ * @param {void}
+ * @returns {JSX.Element} - Returns a sidebar with categorized channel links.
+ * @example
+ * <ChannelSidebar />
+ */
 export const ChannelSidebar = () => {
   const { data: channels = [] } = useQuery({
     queryKey: ['channels'],

@@ -120,8 +120,13 @@ audio, video {
     flex-shrink: 0;
   }
 
-  > .message-gutter {
-    /* i.e. replies in thread. Just here to be easily findable */
+
+}
+.parent-message {
+  .parent-message {
+    .message-gutter {
+      margin-left: 50px;
+    }
   }
 }
 
@@ -203,6 +208,45 @@ audio, video {
 
 .text {
   overflow-wrap: break-word;
+  
+  blockquote {
+    border-left: 4px solid #e3e3e3;
+    padding-left: 8px;
+    &first-of-type {
+      margin-top: 4px;
+    }
+    &last-of-type {
+      margin-bottom: 4px;
+    }
+  }
+
+
+  blockquote + br:has(+ blockquote) {
+    display: none;
+  }
+
+  code {
+    background: #f7f7f7;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+
+  pre {
+    background: #f7f7f7;
+    padding: 8px;
+    border-radius: 3px;
+    overflow-x: auto;
+  }
+
+  .mention {
+    color: #1264a3;
+    font-weight: 500;
+  }
+
+  .channel {
+    color: #1264a3;
+    font-weight: 500;
+  }
 }
 
 .file {
@@ -245,7 +289,7 @@ audio, video {
   background: #39113E;
   width: 250px;
   color: #CDC3CE;
-  padding: 10px 0 20px;
+  padding: 10px 5px 20px 5px;
   overflow: scroll;
 
   ul {
@@ -273,7 +317,6 @@ audio, video {
     display: flex;
     color: #CDC3CE;
     text-decoration: none;
-    max-height: 28px;
     white-space: pre;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -290,6 +333,13 @@ audio, video {
       background: #301034;
       color: #edeced;
     }
+
+    &.active {
+      font-weight: 1000;
+      color: #edeced;
+      background: #457c5e;
+      border-radius: 8px;
+    }
   }
 }
 
@@ -299,6 +349,9 @@ audio, video {
   height: 100%;
   width: calc(100vw - 250px);
   border: none;
+  overflow: scroll;
+  padding-left: 5px;
+  padding-top: 5px;
 }
 
 #search {

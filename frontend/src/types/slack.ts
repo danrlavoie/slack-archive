@@ -12,6 +12,8 @@ export type Channel = SlackChannel;
 export type Reaction = SlackReaction;
 export type File = FileElement;
 
+export type Emojis = Record<string, string>;
+
 export interface Message extends SlackMessage {
   replies?: Array<SlackMessage>;
   thread_ts?: string;

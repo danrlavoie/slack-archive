@@ -8,6 +8,27 @@ interface AttachmentProps {
   text?: string;
 }
 
+/**
+ * Attachment component to display rich content in a message.
+ * @param {string} service_icon - URL of the service icon.
+ * @param {string} service_name - Name of the service.
+ * @param {string} title - Title of the attachment.
+ * @param {string} title_link - URL for the title link.
+ * @param {string} image_url - URL of the main image.
+ * @param {string} thumb_url - URL of the thumbnail image.
+ * @param {string} text - Text content of the attachment.
+ * @returns {JSX.Element} Rendered attachment component.
+ * @example
+ * <Attachment
+ *   service_icon="https://example.com/icon.png"
+ *   service_name="Example Service"
+ *   title="Example Attachment"
+ *   title_link="https://example.com"
+ *   image_url="https://example.com/image.png"
+ *   thumb_url="https://example.com/thumb.png"
+ *   text="This is an example attachment."
+ * />
+ */
 export const Attachment = ({
   service_icon,
   service_name,

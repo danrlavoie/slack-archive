@@ -2,20 +2,24 @@ import type { Message as MessageType, Users } from '../types/slack';
 import { Avatar } from './Avatar';
 import { Attachment } from './Attachment';
 import { formatTimestamp } from '../utils/timestamp';
+import { getName } from '../utils/users';
+import { SlackText } from './SlackText';
 
 interface MessageProps {
   message: MessageType;
   users: Users;
 }
 
-function getName(userId: string | undefined, users: Users) {
-  if (!userId) return "Unknown";
-  const user = users[userId];
-  if (!user) return userId;
-
-  return user.profile?.display_name || user.profile?.real_name || user.name;
-}
-
+/**
+ * Message component to display a single Slack message.
+ * It includes the user's avatar, username, timestamp, text content,
+ * and any attachments associated with the message.
+ * @param {MessageType} message - The Slack message data to be rendered
+ * @param {Users} users - An object containing user profiles keyed by user ID.
+ * @returns {JSX.Element} - Returns a JSX element representing the message.
+ * @example
+ * <Message message={message} users={users} />
+ */
 export const Message = ({ message, users }: MessageProps) => {
   const username = getName(message.user, users);
   
@@ -29,17 +33,13 @@ export const Message = ({ message, users }: MessageProps) => {
         <Avatar userId={message.user} users={users} />
       </div>
       <div className="">
-        <span className="sender">{username || 'Unknown User'}</span>
+        <span className="sender">{username}</span>
         <span className="timestamp">
-          <span className="c-timestamp__label">
-            {formatTimestamp(message)}
-          </span>
+           {formatTimestamp(message)}
         </span>
         <br />
         <div>
-          <div className="text">
-            {message.text}
-          </div>
+          <SlackText text={message.text || ''} users={users} />
           {attachments}
         </div>
       </div>

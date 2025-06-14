@@ -1,8 +1,10 @@
 import axios from 'axios';
-import type { Channel, Message, Users } from '../types/slack';
+import type { Channel, Message, Users, Emojis } from '../types/slack';
+
+const BASE_URL = 'http://localhost:3001';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api'
+  baseURL: `${BASE_URL}/api`
 });
 
 export const getChannels = async (): Promise<Channel[]> => {
@@ -18,4 +20,17 @@ export const getMessages = async (channelId: string): Promise<Message[]> => {
 export const getUsers = async (): Promise<Users> => {
   const { data } = await api.get('/users');
   return data;
+};
+
+export const getEmoji = async (): Promise<Emojis> => {
+  const { data } = await api.get('/emoji');
+  return data;
+};
+
+export const getFileUrl = (channelId: string, fileId: string, fileType: string): string => {
+  return `${BASE_URL}/static/files/${channelId}/${fileId}.${fileType}`;
+};
+
+export const getEmojiUrl = (name: string): string => {
+  return `${BASE_URL}/api/emoji/${name}`;
 };
