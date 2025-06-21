@@ -1,0 +1,30 @@
+{
+  "name": "@slack-archive/archiver",
+  "version": "0.1.0",
+  "description": "Slack channel archiver and search indexer",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/cli.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.5.3",
+    "@slack/web-api": "^7.9.2",
+    "date-fns": "^4.1.0",
+    "fs-extra": "^11.3.0",
+    "lodash-es": "^4.17.21",
+    "node-fetch": "^3.3.2",
+    "ora": "^8.2.0",
+    "rimraf": "^6.0.1",
+    "trash": "^9.0.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^24.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
