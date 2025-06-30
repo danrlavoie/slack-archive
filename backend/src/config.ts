@@ -5,6 +5,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, '../../slack-archive/data');
 export const STATIC_DIR = path.join(__dirname, '../../slack-archive/html');
+export const EMOJIS_DIR = path.join(STATIC_DIR, 'emojis');
 
 export const CHANNELS_DATA_PATH = path.join(DATA_DIR, 'channels.json');
 export const USERS_DATA_PATH = path.join(DATA_DIR, 'users.json');
