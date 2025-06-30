@@ -1,12 +1,28 @@
 import {
-  AuthTestResponse
+  AuthTestResponse,
   ConversationsListArguments,
   ConversationsListResponse,
   WebClient,
 } from "@slack/web-api";
 import ora, { Ora } from "ora";
-import { config, EMOJIS_DIR, getAvatarFilePath, getChannelDataFilePath, getChannelUploadFilePath, NO_FILE_DOWNLOAD, NO_SLACK_CONNECT, USERS_DATA_PATH } from "./config.js";
-import { ArchiveMessage, Channel, Emojis, File, Message, SlackArchiveData, User, Users } from "./interfaces.js";
+import {
+  config,
+  EMOJIS_DIR,
+  getAvatarFilePath,
+  getChannelDataFilePath,
+  getChannelUploadFilePath,
+  USERS_DATA_PATH,
+} from "./config.js";
+import {
+  ArchiveMessage,
+  Channel,
+  Emojis,
+  File,
+  Message,
+  SlackArchiveData,
+  User,
+  Users,
+} from "./interfaces.js";
 import path from "path";
 import fetch from "node-fetch";
 import fs from "fs-extra";
@@ -15,6 +31,7 @@ import { uniqBy } from "lodash-es";
 import { ConversationsHistoryResponse } from "@slack/web-api";
 import { getMessages, getUsers } from "./utils/data-load.js";
 import { getChannels } from "../../src/data-load.js";
+import { writeChannelData } from "../data/write.js";
 
 let _webClient: WebClient;
 
@@ -31,30 +48,26 @@ export async function authTest(token: string): Promise<AuthTestResponse> {
  * Tests the authentication with Slack using the provided token.
  * A side effect of this function is that, if the slack web client is not already initialized,
  * it will initialize it with the provided token.
- * If NO_SLACK_CONNECT is set to true, it will skip any web client activity and return true.
- * @param {string} token - The API authentication token for use with the Slack API. Unnecessary when NO_SLACK_CONNECT is set to true.
- * @returns {Promise<AuthTestResponse | boolean>} A promise that resolves to the authentication test response, true if NO_SLACK_CONNECT is set, or false if authentication fails.
+ * @param {string} token - The API authentication token for use with the Slack API.
+ * @returns {Promise<AuthTestResponse | false>} A promise that resolves to the authentication test response,  or false if authentication fails.
  */
-export async function getAuthTest(token?: string): Promise<AuthTestResponse | boolean> {
-  if (NO_SLACK_CONNECT) {
-    // Skip connecting and allow it to proceed
-    return true;
-  }
-
+export async function getAuthTest(
+  token?: string
+): Promise<AuthTestResponse | false> {
   const spinner = ora("Testing authentication with Slack...").start();
-  const result = await authTest(token || 'Token should exist if we got here');
+  const result = await authTest(token || "Token should exist if we got here");
 
   if (!result.ok) {
     spinner.fail(`Authentication with Slack failed.`);
 
     logger.warn(
-      `Authentication with Slack failed. The error was: ${result.error}`,
+      `Authentication with Slack failed. The error was: ${result.error}`
     );
     logger.warn(
-      `The provided token was ${config.token}. Double-check the token and try again.`,
+      `The provided token was ${config.token}. Double-check the token and try again.`
     );
     logger.warn(
-      `For more information on the error code, see the error table at https://api.slack.com/methods/auth.test`,
+      `For more information on the error code, see the error table at https://api.slack.com/methods/auth.test`
     );
     return false;
   } else {
@@ -82,27 +95,23 @@ function isChannels(input: any): input is ConversationsListResponse {
  * @param options - The options for the conversations.list API call, which can include types of channels to download (e.g., public, private, direct messages).
  * @param users - An object containing user data which may have already been downloaded in the past.
  * @returns {Promise<Array<Channel>>} - A promise that resolves to an array of channels downloaded from Slack.
- * If NO_SLACK_CONNECT is set to true, it will return an empty array without making any API calls.
  */
 export async function downloadChannels(
   options: ConversationsListArguments,
-  users: Users,
+  users: Users
 ): Promise<Array<Channel>> {
   const channels: Array<Channel> = [];
-
-  if (NO_SLACK_CONNECT) {
-    return channels;
-  }
 
   const spinner = ora("Downloading channels").start();
 
   for await (const page of getWebClient().paginate(
     "conversations.list",
-    options as Record<string, unknown>, // Typescript gonna Typescript
+    options as Record<string, unknown> // Typescript gonna Typescript
   )) {
     if (isChannels(page)) {
-      spinner.text = `Found ${page.channels?.length} channels (found so far: ${channels.length + (page.channels?.length || 0)
-        })`;
+      spinner.text = `Found ${page.channels?.length} channels (found so far: ${
+        channels.length + (page.channels?.length || 0)
+      })`;
 
       const pageChannels = (page.channels || []).filter((c) => !!c.id);
 
@@ -139,7 +148,6 @@ export function getWebClient(token?: string) {
   return (_webClient = new WebClient(token));
 }
 
-
 // We'll redownload users every run, but only once per user
 // To keep track, we'll keep the ids in this array
 export const usersRefetchedThisRun: Array<string> = [];
@@ -158,7 +166,7 @@ export const avatarsRefetchedThisRun: Array<string> = [];
  */
 export async function downloadUser(
   item: Message | any,
-  users: Users,
+  users: Users
 ): Promise<User | null> {
   if (!item.user) return null;
 
@@ -168,11 +176,14 @@ export async function downloadUser(
     return users[item.user];
 
   const spinner = ora(`Downloading info for user ${item.user}...`).start();
-  const user = (item.user === 'U00') ? {} as User : (
-    await getWebClient().users.info({
-      user: item.user,
-    })
-  ).user;
+  const user =
+    item.user === "U00"
+      ? ({} as User)
+      : (
+          await getWebClient().users.info({
+            user: item.user,
+          })
+        ).user;
 
   if (user) {
     usersRefetchedThisRun.push(item.user);
@@ -215,14 +226,9 @@ export function getEmojiFilePath(name: string, extension?: string) {
 
 /**
  * Downloads the list of emojis from Slack.
- * If NO_SLACK_CONNECT is set to true, it will return an empty object without making any API calls.
  * @returns An object containing the unicode emoji mappings.
  */
 export async function downloadEmojiList(): Promise<Emojis> {
-  if (NO_SLACK_CONNECT) {
-    return {};
-  }
-
   const response = await getWebClient().emoji.list();
 
   if (response.ok) {
@@ -235,7 +241,7 @@ export async function downloadEmojiList(): Promise<Emojis> {
 export async function downloadEmoji(
   name: string,
   url: string,
-  emojis: Emojis,
+  emojis: Emojis
 ): Promise<void> {
   // Alias?
   if (url.startsWith("alias:")) {
@@ -243,7 +249,7 @@ export async function downloadEmoji(
 
     if (!emojis[alias]) {
       console.warn(
-        `Found emoji alias ${alias}, which does not exist in master emoji list`,
+        `Found emoji alias ${alias}, which does not exist in master emoji list`
       );
       return;
     } else {
@@ -259,12 +265,12 @@ export async function downloadEmoji(
 
 export async function downloadEmojis(
   messages: Array<ArchiveMessage>,
-  emojis: Emojis,
+  emojis: Emojis
 ) {
   const regex = /:[^:\s]*(?:::[^:\s]*)*:/g;
 
   const spinner = ora(
-    `Scanning 0/${messages.length} messages for emoji shortcodes...`,
+    `Scanning 0/${messages.length} messages for emoji shortcodes...`
   ).start();
   let downloaded = 0;
 
@@ -284,10 +290,9 @@ export async function downloadEmojis(
   }
 
   spinner.succeed(
-    `Scanned ${messages.length} messages for emoji (and downloaded ${downloaded})`,
+    `Scanned ${messages.length} messages for emoji (and downloaded ${downloaded})`
   );
 }
-
 
 export interface DownloadUrlOptions {
   authorize?: boolean;
@@ -297,7 +302,7 @@ export interface DownloadUrlOptions {
 export async function downloadURL(
   url: string,
   filePath: string,
-  options: DownloadUrlOptions = {},
+  options: DownloadUrlOptions = {}
 ) {
   const authorize = options.authorize === undefined ? true : options.authorize;
 
@@ -308,8 +313,8 @@ export async function downloadURL(
   const { token } = config;
   const headers: HeadersInit = authorize
     ? {
-      Authorization: `Bearer ${token}`,
-    }
+        Authorization: `Bearer ${token}`,
+      }
     : {};
 
   try {
@@ -334,66 +339,74 @@ export async function downloadEachChannel({
   users,
   emojis,
 }: DownloadEachChannelParams) {
-  if (NO_SLACK_CONNECT) return;
-
   for (const [i, channel] of selectedChannels.entries()) {
-    if (!channel.id) {
-      console.warn(`Selected channel does not have an id`, channel);
-      continue;
-    }
-
-    // Do we already have everything?
-    slackArchiveData.channels[channel.id] =
-      slackArchiveData.channels[channel.id] || {};
-    if (slackArchiveData.channels[channel.id].fullyDownloaded) {
-      continue;
-    }
-
-    // Download messages & users
-    let downloadData = await downloadMessages(
-      channel,
-      i,
-      selectedChannels.length,
-    );
-    let result = downloadData.messages;
-    await downloadExtras(channel, result, users);
-    await downloadEmojis(result, emojis);
-    await downloadAvatars();
-
-    // Sort messages
-    const spinner = ora(
-      `Saving message data for ${channel.name || channel.id} to disk`,
-    ).start();
-    spinner.render();
-
-    result = uniqBy(result, "ts");
-    result = result.sort((a, b) => {
-      return parseFloat(b.ts || "0") - parseFloat(a.ts || "0");
-    });
-
-    fs.outputFileSync(
-      getChannelDataFilePath(channel.id),
-      JSON.stringify(result, undefined, 2),
-    );
+    downloadChannel(i, channel, slackArchiveData, selectedChannels, users, emojis);
 
     // Download files. This needs to run after the messages are saved to disk
     // since it uses the message data to find which files to download.
-    await downloadFilesForChannel(channel.id!, spinner);
-
-    // Update the data load cache
-    messagesCache[channel.id!] = result;
-
-    // Update the data
-    const { is_archived, is_im, is_user_deleted } = channel;
-    if (is_archived || (is_im && is_user_deleted)) {
-      slackArchiveData.channels[channel.id].fullyDownloaded = true;
-    }
-    slackArchiveData.channels[channel.id].messages = result.length;
-
-    spinner.succeed(`Saved message data for ${channel.name || channel.id}`);
+    await downloadFilesForChannel(channel.id!);
   }
 }
 
+async function downloadChannel(
+  index: number,
+  channel: Channel,
+  slackArchiveData: SlackArchiveData,
+  selectedChannels: Array<Channel>,
+  users: Users,
+  emojis: Emojis
+) {
+  if (!channel.id) {
+    logger.warn(`Selected channel does not have an id`, channel);
+    return;
+  }
+
+  // Do we already have everything?
+  slackArchiveData.channels[channel.id] =
+    slackArchiveData.channels[channel.id] || {};
+  if (slackArchiveData.channels[channel.id].fullyDownloaded) {
+    return;
+  }
+
+  // Download messages & users
+  let downloadData = await downloadMessages(
+    channel,
+    index,
+    selectedChannels.length
+  );
+  let result = downloadData.messages;
+  await downloadExtras(channel, result, users);
+  await downloadEmojis(result, emojis);
+  await downloadAvatars();
+
+  // Sort messages
+  const spinner = ora(
+    `Saving message data for ${channel.name || channel.id} to disk`
+  ).start();
+  spinner.render();
+
+  result = uniqBy(result, "ts");
+  result = result.sort((a, b) => {
+    return parseFloat(b.ts || "0") - parseFloat(a.ts || "0");
+  });
+
+  writeChannelData(channel.id, result);
+
+
+  // Update the data
+  const { is_archived, is_im, is_user_deleted } = channel;
+  if (is_archived || (is_im && is_user_deleted)) {
+    slackArchiveData.channels[channel.id].fullyDownloaded = true;
+  }
+  slackArchiveData.channels[channel.id].messages = result.length;
+
+  spinner.succeed(`Saved message data for ${channel.name || channel.id}`);
+  return {
+    slackArchiveData,
+    users,
+    result,
+  };
+}
 
 function isConversation(input: any): input is ConversationsHistoryResponse {
   return !!input.messages;
@@ -403,7 +416,6 @@ function isThread(message: Message) {
   return message.reply_count && message.reply_count > 0;
 }
 
-
 interface DownloadMessagesResult {
   messages: Array<ArchiveMessage>;
   new: number;
@@ -412,7 +424,7 @@ interface DownloadMessagesResult {
 export async function downloadMessages(
   channel: Channel,
   i: number,
-  channelCount: number,
+  channelCount: number
 ): Promise<DownloadMessagesResult> {
   let result: DownloadMessagesResult = {
     messages: [],
@@ -434,7 +446,7 @@ export async function downloadMessages(
     channel.name || channel.id || channel.purpose?.value || "Unknown channel";
 
   const spinner = ora(
-    `Downloading messages for channel ${i + 1}/${channelCount} (${name})...`,
+    `Downloading messages for channel ${i + 1}/${channelCount} (${name})...`
   ).start();
 
   for await (const page of getWebClient().paginate("conversations.history", {
@@ -446,8 +458,9 @@ export async function downloadMessages(
       const fetched = `Fetched ${pageLength} messages`;
       const total = `(total so far: ${result.messages.length + pageLength}`;
 
-      spinner.text = `Downloading ${i + 1
-        }/${channelCount} ${name}: ${fetched} ${total})`;
+      spinner.text = `Downloading ${
+        i + 1
+      }/${channelCount} ${name}: ${fetched} ${total})`;
 
       result.new = result.new + (page.messages || []).length;
 
@@ -456,20 +469,19 @@ export async function downloadMessages(
   }
 
   spinner.succeed(
-    `Downloaded messages for channel ${i + 1}/${channelCount} (${name})`,
+    `Downloaded messages for channel ${i + 1}/${channelCount} (${name})`
   );
 
   return result;
 }
 
-
 export async function downloadExtras(
   channel: Channel,
   messages: Array<ArchiveMessage>,
-  users: Users,
+  users: Users
 ) {
   const spinner = ora(
-    `Downloading threads and users for ${channel.name || channel.id}...`,
+    `Downloading threads and users for ${channel.name || channel.id}...`
   ).start();
 
   // Then, all messages and threads
@@ -479,8 +491,9 @@ export async function downloadExtras(
     // Download threads
     if (isThread(message)) {
       processedThreads++;
-      spinner.text = `Downloading threads (${processedThreads}/${totalThreads}) for ${channel.name || channel.id
-        }...`;
+      spinner.text = `Downloading threads (${processedThreads}/${totalThreads}) for ${
+        channel.name || channel.id
+      }...`;
       message.replies = await downloadReplies(channel, message);
     }
 
@@ -491,15 +504,15 @@ export async function downloadExtras(
   }
 
   spinner.succeed(
-    `Downloaded ${totalThreads} threads and users for ${channel.name || channel.id
-    }.`,
+    `Downloaded ${totalThreads} threads and users for ${
+      channel.name || channel.id
+    }.`
   );
 }
 
-
 export async function downloadReplies(
   channel: Channel,
-  message: ArchiveMessage,
+  message: ArchiveMessage
 ): Promise<Array<Message>> {
   if (!channel.id || !message.ts) {
     logger.warn("Could not find channel or message id", channel, message);
@@ -529,7 +542,6 @@ export async function downloadReplies(
   return (result.messages || []).slice(1);
 }
 
-
 export async function downloadAvatars() {
   const users = await getUsers();
   const userIds = Object.keys(users);
@@ -557,7 +569,7 @@ export async function downloadAvatarForUser(user?: User | null) {
   try {
     const filePath = getAvatarFilePath(
       user.id!,
-      path.extname(profile.image_512),
+      path.extname(profile.image_512)
     );
     await downloadURL(profile.image_512, filePath, {
       authorize: false,
@@ -569,17 +581,13 @@ export async function downloadAvatarForUser(user?: User | null) {
   }
 }
 
-
-export async function downloadFilesForChannel(channelId: string, spinner: Ora) {
-  if (NO_FILE_DOWNLOAD) {
-    return;
-  }
-
+export async function downloadFilesForChannel(channelId: string) {
+  const spinner = ora().start();
   const messages = await getMessages(channelId);
   const channels = await getChannels();
   const channel = channels.find(({ id }) => id === channelId);
   const fileMessages = messages.filter(
-    (m) => (m.files?.length || m.replies?.length || 0) > 0,
+    (m) => (m.files?.length || m.replies?.length || 0) > 0
   );
   const getSpinnerText = (i: number, ri?: number) => {
     let reply = "";
@@ -593,6 +601,7 @@ export async function downloadFilesForChannel(channelId: string, spinner: Ora) {
   };
 
   spinner.text = getSpinnerText(0);
+  spinner.render();
 
   for (const [i, fileMessage] of fileMessages.entries()) {
     if (!fileMessage.files && !fileMessage.replies) {
@@ -618,7 +627,7 @@ export async function downloadFilesForChannel(channelId: string, spinner: Ora) {
               channelId,
               i,
               fileMessages.length,
-              spinner,
+              spinner
             );
           }
         }
@@ -627,13 +636,12 @@ export async function downloadFilesForChannel(channelId: string, spinner: Ora) {
   }
 }
 
-
 async function downloadFile(
   file: File,
   channelId: string,
   i: number,
   total: number,
-  spinner: Ora,
+  spinner: Ora
 ) {
   const { url_private, id, is_external, mimetype } = file;
   const { thumb_1024, thumb_720, thumb_480, thumb_pdf } = file as any;

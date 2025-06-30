@@ -1,31 +1,54 @@
+// Standard library imports
+import { uniqBy } from "lodash-es";
+
+// Third-party library imports
 import ora from "ora";
+
+// Internal utility imports
+import { logger } from "./utils/logger";
+import { createBackup, deleteBackup, deleteOlderBackups } from "./utils/backup";
+import { getUsers } from "./utils/data-load";
+
+// Internal config and constants
+import {
+  AUTOMATIC_MODE,
+  CHANNELS_DATA_PATH,
+  DATA_DIR,
+  EMOJIS_DATA_PATH,
+  SEARCH_FILE_PATH,
+  USERS_DATA_PATH,
+} from "./config";
+
+// Internal data read/write
+import {
+  writeLastSuccessfulArchiveDate,
+  writeAndMerge,
+  writeChannelData,
+} from "./data/write";
+import { getLastSuccessfulRun, getSlackArchiveData } from "./data/read";
+
+// Internal prompt utilities
 import {
   getToken,
   selectChannelTypes,
   selectChannels,
   shouldMergeFiles,
 } from "./utils/prompt";
+
+// Slack API and download utilities
 import {
+  downloadAvatars,
   downloadChannels,
-  downloadEachChannel,
   downloadEmojiList,
+  downloadEmojis,
+  downloadExtras,
+  downloadFilesForChannel,
+  downloadMessages,
   getAuthTest,
 } from "./slack";
+
+// Search index
 import { createSearchIndex } from "./search";
-import { createBackup, deleteBackup, deleteOlderBackups } from "./utils/backup";
-import { writeLastSuccessfulArchiveDate, writeAndMerge } from "./data/write";
-import { getLastSuccessfulRun, getSlackArchiveData } from "./data/read";
-import { logger } from "./utils/logger";
-import {
-  AUTOMATIC_MODE,
-  CHANNELS_DATA_PATH,
-  DATA_DIR,
-  EMOJIS_DATA_PATH,
-  NO_SLACK_CONNECT,
-  USERS_DATA_PATH,
-} from "./config";
-import { getUsers } from "./utils/data-load";
-import { AuthTestResponse } from "@slack/web-api";
 
 export async function main() {
   const lastSuccessfulArchive = await getLastSuccessfulRun();
@@ -34,11 +57,6 @@ export async function main() {
   if (AUTOMATIC_MODE) {
     logger.info(
       "Running in automatic mode. No user interaction will be required."
-    );
-  }
-  if (NO_SLACK_CONNECT) {
-    logger.info(
-      "Running in no Slack connect mode. No data will be downloaded from Slack."
     );
   }
 
@@ -64,10 +82,7 @@ export async function main() {
       await deleteBackup(backupDir);
       process.exit(-1);
     }
-    if (typeof authTestResult !== "boolean") {
-      // AuthTestResult could be the boolean "true" if we are in NO_SLACK_CONNECT mode
-      channelsAndAuth.auth = authTestResult as AuthTestResponse;
-    }
+    channelsAndAuth.auth = authTestResult;
 
     // Select what channels to download
     const channelTypes = await selectChannelTypes();
@@ -83,46 +98,55 @@ export async function main() {
     // Download and save emoji mappings to a file
     const emojis = await downloadEmojiList();
 
-    const allChannelData = await downloadEachChannel();
-    const { users: finishedUsers } = allChannelData;
+    for (const [i, channel] of selectedChannels.entries()) {
+      if (!channel.id) {
+        logger.warn(`Skipping channel with no ID`, { channel });
+        continue;
+      }
+      // Do we already have everything?
+      channelsAndAuth.channels[channel.id] =
+        channelsAndAuth.channels[channel.id] || {};
+      if (channelsAndAuth.channels[channel.id].fullyDownloaded) {
+        continue;
+      }
+      // Download messages & users
+      let downloadData = await downloadMessages(
+        channel,
+        i,
+        selectedChannels.length
+      );
+      const result = downloadData.messages;
+      const sortedUniqueResult = uniqBy(result, "ts").sort((a, b) => {
+        return parseFloat(b.ts || "0") - parseFloat(a.ts || "0");
+      });
+      // Write the channel message data to disk
+      writeChannelData(channel.id, sortedUniqueResult);
+      const { is_archived, is_im, is_user_deleted } = channel;
+      if (is_archived || (is_im && is_user_deleted)) {
+        channelsAndAuth.channels[channel.id].fullyDownloaded = true;
+      }
+      channelsAndAuth.channels[channel.id].messages = result.length;
+
+      // Download extra content
+      await downloadExtras(channel, result, users);
+      await downloadEmojis(result, emojis);
+      await downloadAvatars();
+      // Download files. This needs to run after the messages are saved to disk
+      // since it uses the message data to find which files to download.
+      await downloadFilesForChannel(channel.id);
+    }
 
     // Handle data merging
     const shouldMerge = await shouldMergeFiles();
     if (shouldMerge) {
       await writeAndMerge(EMOJIS_DATA_PATH, emojis);
       await writeAndMerge(CHANNELS_DATA_PATH, selectedChannels);
-      await writeAndMerge(USERS_DATA_PATH, finishedUsers);
+      await writeAndMerge(USERS_DATA_PATH, users);
     }
-
-    // Download channel data
-    // for (const channel of selectedChannels) {
-    //   if (!channel.id) {
-    //     logger.warn(`Skipping channel with no ID`, { channel });
-    //     continue;
-    //   }
-
-    //   logger.info(`Processing channel ${channel.name || channel.id}`);
-    //   const spinner = ora(`Downloading ${channel.name || channel.id}`).start();
-
-    //   // Download messages and related content
-    //   const { messages, newCount } = await downloadMessages(channel);
-    //   await downloadFiles(channel.id, messages);
-    //   await downloadEmojis(messages);
-
-    //   // Update archive data
-    //   archiveData.channels[channel.id].messages = messages.length;
-    //   archiveData.channels[channel.id].lastUpdate = new Date().toISOString();
-
-    //   spinner.succeed(`Downloaded ${newCount} new messages for ${channel.name || channel.id}`);
-    //   logger.info(`Completed channel ${channel.name || channel.id}`, {
-    //     messageCount: messages.length,
-    //     newMessages: newCount
-    //   });
-    // }
 
     // Create search index
     const spinner = ora("Building search index").start();
-    await createSearchIndex();
+    await createSearchIndex(DATA_DIR, SEARCH_FILE_PATH);
     spinner.succeed("Search index created");
 
     // Cleanup and save final state

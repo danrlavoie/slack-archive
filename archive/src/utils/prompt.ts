@@ -1,4 +1,4 @@
-import { AUTOMATIC_MODE, CHANNEL_TYPES, CHANNELS_DATA_PATH, config, EXCLUDE_CHANNELS, NO_SLACK_CONNECT, OUT_DIR, TOKEN_FILE, USE_PREVIOUS_CHANNEL_CONFIG } from "../config.js";
+import { AUTOMATIC_MODE, CHANNEL_TYPES, CHANNELS_DATA_PATH, config, EXCLUDE_CHANNELS, OUT_DIR, TOKEN_FILE, USE_PREVIOUS_CHANNEL_CONFIG } from "../config.js";
 import fs from "fs-extra";
 import { checkbox, confirm, input } from "@inquirer/prompts";
 import { logger } from "./logger";
@@ -9,13 +9,9 @@ import { Channel, SlackArchiveChannelData } from "../interfaces.js";
  * If the token is already hard-coded in the config, it uses that.
  * If the token file exists, it reads the token from there.
  * If neither is available, it prompts the user to enter their Slack token.
- * @returns {Promise<string | undefined>} The Slack token or undefined if no token is provided.
+ * @returns {Promise<string>} The Slack token as a string.
  */
 export async function getToken() {
-  if (NO_SLACK_CONNECT) {
-    logger.info("Skipping token setup since NO_SLACK_CONNECT is active.");
-    return;
-  }
 
   if (config.token) {
     logger.info(`Using token ${config.token}`);
@@ -37,7 +33,7 @@ export async function getToken() {
 
 /**
  * Prompts the user to select whether to merge existing archive files or delete them.
- * If AUTOMATIC_MODE or NO_SLACK_CONNECT is true, it defaults to merging.
+ * If AUTOMATIC_MODE is true, it defaults to merging.
  * If CHANNELS_DATA_PATH does not exist, it returns false.
  * @returns {Promise<boolean>} A promise that resolves to true if the user chooses to merge, false otherwise.
  */
@@ -49,7 +45,7 @@ export async function shouldMergeFiles(): Promise<boolean> {
   }
 
   // We didn't download any data. Merge.
-  if (AUTOMATIC_MODE || NO_SLACK_CONNECT) {
+  if (AUTOMATIC_MODE) {
     return defaultResponse;
   }
 
@@ -72,7 +68,7 @@ export async function shouldMergeFiles(): Promise<boolean> {
 /**
  * Function to select channels to download from Slack.
  * If USE_PREVIOUS_CHANNEL_CONFIG is true, it will use previously downloaded channels.
- * If AUTOMATIC_MODE or NO_SLACK_CONNECT is true, it will return all channels.
+ * If AUTOMATIC_MODE is set it will return all channels.
  * If EXCLUDE_CHANNELS is set, it will exclude those channels.
  * Otherwise, it will prompt the user to select channels.
  * @param {Array<Channel>} channels - The list of available Slack channels found by hitting the Slack API.
@@ -128,7 +124,7 @@ export async function selectChannels(
     value: channel,
   }));
 
-  if (AUTOMATIC_MODE || NO_SLACK_CONNECT) {
+  if (AUTOMATIC_MODE) {
     if (EXCLUDE_CHANNELS) {
       const excludeChannels = EXCLUDE_CHANNELS.split(',');
       return channels.filter((channel) => !excludeChannels.includes(channel.name || ''));
@@ -150,7 +146,6 @@ export async function selectChannels(
  * If CHANNEL_TYPES is set (a comma separated string of types), it will use those.
  * If AUTOMATIC_MODE is true, it will return all channel types.
  * If USE_PREVIOUS_CHANNEL_CONFIG is true, it will return all channel types.
- * If NO_SLACK_CONNECT is true, it will return all channel types.
  * If none of the above, it will prompt the user to select channel types.
  * @returns {Promise<Array<string>>} An array of selected channel types, e.g. ["public_channel", "private_channel", "mpim", "im"].
  */
@@ -178,7 +173,7 @@ export async function selectChannelTypes(): Promise<Array<string>> {
     return CHANNEL_TYPES.split(",");
   }
 
-  if (AUTOMATIC_MODE || USE_PREVIOUS_CHANNEL_CONFIG || NO_SLACK_CONNECT) {
+  if (AUTOMATIC_MODE || USE_PREVIOUS_CHANNEL_CONFIG) {
     return ["public_channel", "private_channel", "mpim", "im"];
   }
 

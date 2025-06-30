@@ -2,8 +2,9 @@ import fs from "fs-extra";
 import { differenceBy } from "lodash-es";
 
 import { retry } from "../utils/backup";
-import { DATE_FILE } from "../config";
+import { DATE_FILE, getChannelDataFilePath } from "../config";
 import { logger } from "../utils/logger";
+import { ArchiveMessage } from "../interfaces";
 
 export async function write(filePath: string, data: any) {
   await retry({ name: `Writing ${filePath}` }, () => {
@@ -60,4 +61,11 @@ export async function writeAndMerge(filePath: string, newData: any) {
 export async function writeLastSuccessfulArchiveDate() {
   const now = new Date();
   write(DATE_FILE, now.toISOString());
+}
+
+export async function writeChannelData(channelId: string, result: ArchiveMessage[]) {
+    fs.outputFileSync(
+      getChannelDataFilePath(channelId),
+      JSON.stringify(result, undefined, 2)
+    );
 }
