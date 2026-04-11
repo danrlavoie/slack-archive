@@ -161,9 +161,7 @@ export async function main() {
   }
 }
 
-if (require.main === module) {
-  main().catch((error) => {
-    logger.error("Exiting due to error", { error });
-    process.exit(1);
-  });
-}
+main().catch((error) => {
+  logger.error("Exiting due to error", { error });
+  process.exit(1);
+});
