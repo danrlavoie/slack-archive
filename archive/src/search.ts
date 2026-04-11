@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { CHANNELS_DATA_PATH } from "./config";
+import { CHANNELS_DATA_PATH } from "./config.js";
 
 /**
  * Recursively extract all text content from a Slack message's blocks.

@@ -1,17 +1,20 @@
 import {
   AuthTestResponse,
+  ConversationsHistoryResponse,
   ConversationsListArguments,
   ConversationsListResponse,
   WebClient,
 } from "@slack/web-api";
+import fs from "fs-extra";
+import fetch from "node-fetch";
 import ora, { Ora } from "ora";
+import path from "path";
+
 import {
   config,
   EMOJIS_DIR,
   getAvatarFilePath,
-  getChannelDataFilePath,
   getChannelUploadFilePath,
-  USERS_DATA_PATH,
 } from "./config.js";
 import {
   ArchiveMessage,
@@ -19,19 +22,11 @@ import {
   Emojis,
   File,
   Message,
-  SlackArchiveData,
   User,
   Users,
 } from "./interfaces.js";
-import path from "path";
-import fetch from "node-fetch";
-import fs from "fs-extra";
 import { logger } from "./utils/logger.js";
-import { uniqBy } from "lodash-es";
-import { ConversationsHistoryResponse } from "@slack/web-api";
-import { getMessages, getUsers } from "./utils/data-load.js";
-import { getChannels } from "../../src/data-load.js";
-import { writeChannelData } from "../data/write.js";
+import { getChannels, getMessages, getUsers } from "./utils/data-load.js";
 
 let _webClient: WebClient;
 
@@ -267,8 +262,6 @@ export async function downloadEmojis(
   messages: Array<ArchiveMessage>,
   emojis: Emojis
 ) {
-  const regex = /:[^:\s]*(?:::[^:\s]*)*:/g;
-
   const spinner = ora(
     `Scanning 0/${messages.length} messages for emoji shortcodes...`
   ).start();
@@ -324,88 +317,6 @@ export async function downloadURL(
   } catch (error) {
     console.warn(`Failed to download file ${url}`, error);
   }
-}
-
-export interface DownloadEachChannelParams {
-  slackArchiveData: SlackArchiveData;
-  selectedChannels: Array<Channel>;
-  users: Users;
-  emojis: Emojis;
-}
-
-export async function downloadEachChannel({
-  slackArchiveData,
-  selectedChannels,
-  users,
-  emojis,
-}: DownloadEachChannelParams) {
-  for (const [i, channel] of selectedChannels.entries()) {
-    downloadChannel(i, channel, slackArchiveData, selectedChannels, users, emojis);
-
-    // Download files. This needs to run after the messages are saved to disk
-    // since it uses the message data to find which files to download.
-    await downloadFilesForChannel(channel.id!);
-  }
-}
-
-async function downloadChannel(
-  index: number,
-  channel: Channel,
-  slackArchiveData: SlackArchiveData,
-  selectedChannels: Array<Channel>,
-  users: Users,
-  emojis: Emojis
-) {
-  if (!channel.id) {
-    logger.warn(`Selected channel does not have an id`, channel);
-    return;
-  }
-
-  // Do we already have everything?
-  slackArchiveData.channels[channel.id] =
-    slackArchiveData.channels[channel.id] || {};
-  if (slackArchiveData.channels[channel.id].fullyDownloaded) {
-    return;
-  }
-
-  // Download messages & users
-  let downloadData = await downloadMessages(
-    channel,
-    index,
-    selectedChannels.length
-  );
-  let result = downloadData.messages;
-  await downloadExtras(channel, result, users);
-  await downloadEmojis(result, emojis);
-  await downloadAvatars();
-
-  // Sort messages
-  const spinner = ora(
-    `Saving message data for ${channel.name || channel.id} to disk`
-  ).start();
-  spinner.render();
-
-  result = uniqBy(result, "ts");
-  result = result.sort((a, b) => {
-    return parseFloat(b.ts || "0") - parseFloat(a.ts || "0");
-  });
-
-  writeChannelData(channel.id, result);
-
-
-  // Update the data
-  const { is_archived, is_im, is_user_deleted } = channel;
-  if (is_archived || (is_im && is_user_deleted)) {
-    slackArchiveData.channels[channel.id].fullyDownloaded = true;
-  }
-  slackArchiveData.channels[channel.id].messages = result.length;
-
-  spinner.succeed(`Saved message data for ${channel.name || channel.id}`);
-  return {
-    slackArchiveData,
-    users,
-    result,
-  };
 }
 
 function isConversation(input: any): input is ConversationsHistoryResponse {

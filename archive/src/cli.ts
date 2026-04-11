@@ -5,9 +5,9 @@ import { uniqBy } from "lodash-es";
 import ora from "ora";
 
 // Internal utility imports
-import { logger } from "./utils/logger";
-import { createBackup, deleteBackup, deleteOlderBackups } from "./utils/backup";
-import { getUsers } from "./utils/data-load";
+import { logger } from "./utils/logger.js";
+import { createBackup, deleteBackup, deleteOlderBackups } from "./utils/backup.js";
+import { getUsers } from "./utils/data-load.js";
 
 // Internal config and constants
 import {
@@ -17,15 +17,15 @@ import {
   EMOJIS_DATA_PATH,
   SEARCH_FILE_PATH,
   USERS_DATA_PATH,
-} from "./config";
+} from "./config.js";
 
 // Internal data read/write
 import {
   writeLastSuccessfulArchiveDate,
   writeAndMerge,
   writeChannelData,
-} from "./data/write";
-import { getLastSuccessfulRun, getSlackArchiveData } from "./data/read";
+} from "./data/write.js";
+import { getLastSuccessfulRun, getSlackArchiveData } from "./data/read.js";
 
 // Internal prompt utilities
 import {
@@ -33,7 +33,7 @@ import {
   selectChannelTypes,
   selectChannels,
   shouldMergeFiles,
-} from "./utils/prompt";
+} from "./utils/prompt.js";
 
 // Slack API and download utilities
 import {
@@ -45,10 +45,10 @@ import {
   downloadFilesForChannel,
   downloadMessages,
   getAuthTest,
-} from "./slack";
+} from "./slack.js";
 
 // Search index
-import { createSearchIndex } from "./search";
+import { createSearchIndex } from "./search.js";
 
 export async function main() {
   const lastSuccessfulArchive = await getLastSuccessfulRun();

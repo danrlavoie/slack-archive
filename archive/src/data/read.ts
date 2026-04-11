@@ -1,8 +1,8 @@
 import fs from "fs-extra";
 
-import { DATE_FILE, SLACK_ARCHIVE_DATA_PATH } from "../config";
-import { SlackArchiveData } from "../interfaces";
-import { readJSON } from "../utils/data-load";
+import { DATE_FILE, SLACK_ARCHIVE_DATA_PATH } from "../config.js";
+import { SlackArchiveData } from "../interfaces.js";
+import { readJSON } from "../utils/data-load.js";
 import { isValid, parseISO } from "date-fns";
 
 /**

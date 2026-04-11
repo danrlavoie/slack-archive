@@ -1,10 +1,10 @@
 import fs from "fs-extra";
 import { differenceBy } from "lodash-es";
 
-import { retry } from "../utils/backup";
-import { DATE_FILE, getChannelDataFilePath } from "../config";
-import { logger } from "../utils/logger";
-import { ArchiveMessage } from "../interfaces";
+import { retry } from "../utils/backup.js";
+import { DATE_FILE, getChannelDataFilePath } from "../config.js";
+import { logger } from "../utils/logger.js";
+import { ArchiveMessage } from "../interfaces.js";
 
 export async function write(filePath: string, data: any) {
   await retry({ name: `Writing ${filePath}` }, () => {

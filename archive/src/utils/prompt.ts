@@ -1,7 +1,7 @@
 import { AUTOMATIC_MODE, CHANNEL_TYPES, CHANNELS_DATA_PATH, config, EXCLUDE_CHANNELS, OUT_DIR, TOKEN_FILE, USE_PREVIOUS_CHANNEL_CONFIG } from "../config.js";
 import fs from "fs-extra";
 import { checkbox, confirm, input } from "@inquirer/prompts";
-import { logger } from "./logger";
+import { logger } from "./logger.js";
 import { Channel, SlackArchiveChannelData } from "../interfaces.js";
 
 /**

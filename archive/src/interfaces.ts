@@ -1,8 +1,8 @@
-import { MessageElement as SlackMessage, FileElement } from "@slack/web-api/dist/response/ConversationsHistoryResponse";
-import { Channel as SlackChannel } from "@slack/web-api/dist/response/ConversationsListResponse";
-import { User as SlackUser } from "@slack/web-api/dist/response/UsersInfoResponse";
-import { File as SlackFile } from "@slack/web-api/dist/response/FilesInfoResponse";
-import { Reaction as SlackReaction } from "@slack/web-api/dist/response/ReactionsGetResponse";
+import { MessageElement as SlackMessage, FileElement } from "@slack/web-api/dist/types/response/ConversationsHistoryResponse.js";
+import { Channel as SlackChannel } from "@slack/web-api/dist/types/response/ConversationsListResponse.js";
+import { User as SlackUser } from "@slack/web-api/dist/types/response/UsersInfoResponse.js";
+import { File as SlackFile } from "@slack/web-api/dist/types/response/FilesInfoResponse.js";
+import { Reaction as SlackReaction } from "@slack/web-api/dist/types/response/ReactionsGetResponse.js";
 import { AuthTestResponse } from "@slack/web-api";
 
 export type User = SlackUser;

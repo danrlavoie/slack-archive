@@ -1,10 +1,10 @@
 import trash from "trash";
-import { AUTOMATIC_MODE, DATA_DIR, NO_BACKUP, OUT_DIR } from "../config";
+import { AUTOMATIC_MODE, DATA_DIR, NO_BACKUP, OUT_DIR } from "../config.js";
 import fs from "fs-extra";
 import { rimraf } from "rimraf";
 import path from "path";
 import { confirm } from "@inquirer/prompts";
-import { logger } from "./logger";
+import { logger } from "./logger.js";
 
 export interface RetryOptions {
     retries: number;
