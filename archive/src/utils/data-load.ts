@@ -70,7 +70,7 @@ export async function getSearchFile(): Promise<SearchFile> {
 
 export async function readFile(filePath: string, encoding = "utf8") {
   return retry<string>({ name: `Reading ${filePath}` }, () => {
-    return fs.readFileSync(SEARCH_DATA_PATH, "utf8");
+    return fs.readFileSync(filePath, encoding as BufferEncoding);
   });
 }
 

@@ -153,8 +153,7 @@ export async function deleteOlderBackups() {
             if (!isBackup) continue;
 
             const dir = path.join(OUT_DIR, entry);
-            const { isDirectory } = fs.statSync(dir);
-            if (!isDirectory) continue;
+            if (!fs.statSync(dir).isDirectory()) continue;
 
             oldBackupPaths.push(dir);
             oldBackupNames.push(entry);
