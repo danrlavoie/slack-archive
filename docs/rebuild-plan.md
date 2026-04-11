@@ -1,7 +1,7 @@
 # Slack Archive Rebuild — Design & Roadmap
 
-**Status:** Draft, 2026-04-11. Supersedes the ad-hoc refactor started June 2025.
-**Branch:** `refactor/rebuild-plan` (off `main` @ `f15c551`).
+**Status:** Decisions locked, 2026-04-11. Supersedes the ad-hoc refactor started June 2025.
+**Branch:** `refactor/rebuild-plan` (off `main` @ `f15c551`). Stages merge into this branch; fast-forward merge to `main` when v1 is done.
 **Scope:** Architectural direction only. Per-stage TDD task plans will be written at the start of each stage, not in this document.
 
 ---
@@ -11,7 +11,7 @@
 The repo has been idle for ~10 months. A multi-package refactor was started in June 2025 and abandoned partway through. Before resuming, we need:
 
 1. A shared mental model of the target system.
-2. Explicit architectural decisions (some of which are still open).
+2. Explicit architectural decisions (all resolved — see §7).
 3. A staged path where each stage produces something working and testable.
 4. A record of the known bugs and loose ends so they're not re-discovered the hard way.
 
@@ -67,16 +67,16 @@ A self-hosted Slack archive running unattended on UnRAID with the following prop
 - **Deployable as one `docker-compose.yml`** pulling from UnRAID's Community Applications ecosystem or a private registry. Config via env vars + bind mounts into `/mnt/user/appdata/slack-archive/`.
 - **Daily unattended archive runs** against Slack, fetching new/updated messages, files, avatars, and emoji.
 - **Weekly snapshot backups** of the data directory into `/appdata/slack-archive/backups/`, with automatic rotation keeping the most recent 5.
-- **Modern React + Vite web app** served over HTTP on a mapped port, reachable from anywhere on the home LAN.
-- **URL-addressable deep links** — routing by workspace → channel → thread → message, so individual messages have shareable URLs.
+- **Modern React + Vite SPA** served over HTTP on a mapped port, reachable from anywhere on the home LAN. Treated as a "frontend v2" — the existing `frontend/` code is reference material, not a baseline to patch. We're free to redesign the component tree and routing from scratch.
+- **URL-addressable deep links** — routing by workspace → channel → thread → message, so individual messages have shareable URLs. Workspace dimension (`/ws/:workspaceId/`) included from day one for future-proofing.
 - **Embedded search** — a search box inside the web app that navigates to a message's deep link when you click a result. No more separate static search page.
-- **Primarily static or server-rendered** — the shell of the site should not require a heavy JS runtime to render the first view. Interactive bits (search, anchoring) can be islands of React.
+- **Images published to `ghcr.io/danrlavoie/slack-archive`** for both containers.
 
 ### Non-goals
 
 - Multi-user authentication / access control. It's a single-user home deployment.
 - Live Slack integration (threading, reactions in real time). Read-only archive.
-- Multi-workspace support as a v1 feature — the URL scheme should leave room for it, but a single workspace is enough for v1.
+- Multi-workspace support as a v1 feature — the URL scheme includes the workspace prefix for future-proofing, but a single workspace is enough for v1.
 
 ---
 
@@ -125,57 +125,38 @@ The shared state between the two containers is the bind mount to `data/` — the
 
 ## 7. Architectural decisions
 
-### 7.1 Rendering model — SPA vs SSG vs SSR  *(OPEN — needs your input)*
+### 7.1 Rendering model — SPA  *(DECIDED)*
 
-The vision says "primarily static or server-rendered, for maintainability." This conflicts with the current `frontend/` which is a runtime SPA. Three realistic options:
+**SPA (React + Vite + React Router).** The `web` container serves `index.html` + static JS/CSS; all routes resolve via client-side React Router; data fetched at runtime from `/api/*`. First paint requires JS, but this is a private LAN app — SEO is not a concern.
 
-**Option A — Keep it an SPA.**
-- Simplest path to "working." ~70% of the frontend is already built.
-- `web` container serves `index.html` + static JS/CSS; all routes resolve via client-side React Router; data fetched at runtime from `/api/*`.
-- First paint requires JS; URL deep-links are transparent to search engines (but this is a private LAN app, SEO is not a concern).
-- ~1–2 stages of work to finish.
-
-**Option B — Static Site Generation at archive time.**
-- When the archiver finishes, it also generates all per-channel/per-thread HTML pages from the data JSON. The frontend becomes a pre-rendered static site, with small React islands for interactivity (search, expand thread, etc.).
-- Fast loads. Robust to JS failures. Works even with the `web` container down (nginx could serve the files).
-- More work: a build pipeline that runs as part of archiver, a framework choice (Astro is the natural fit; the current Vite + React setup is not designed for SSG and would need to be replaced or significantly augmented).
-- Throws away a meaningful amount of the existing `frontend/` work.
-
-**Option C — Vite SSR.**
-- Vite has SSR support; frontend renders on-request in the `web` container using the same React components.
-- Middle ground. Keeps the existing component tree. Server handles first-render; hydration makes it interactive.
-- Most complex of the three. More moving parts at runtime.
-
-**Recommendation:** Start with **Option A** for v1. It reaches a working end-to-end system fastest and preserves the existing `frontend/` work. If maintainability becomes a pain point later, migrating to Astro (Option B) is a well-trodden path and the data layer (`archive/` + `backend/`) is independent of the rendering choice.
-
-**If you'd rather start with B or C, flag it and this plan gets re-scoped.**
+The existing `frontend/` is **reference material, not a baseline.** This is "frontend v2" — the component tree, routing, and data-fetching layer will be designed from scratch. Patterns and components from the old `frontend/` that still make sense can be pulled forward selectively, but we're not obligated to preserve any of it.
 
 ### 7.2 URL scheme
 
-Proposed route table (for Option A; identical for B/C):
+Route table:
 
 ```
-/                                        → index / recent channels
-/c/:channelId                            → channel view, paginated
-/c/:channelId/m/:messageTs               → channel anchored to message
-/c/:channelId/t/:threadTs                → thread view
-/c/:channelId/t/:threadTs/m/:messageTs   → thread anchored to reply
-/search?q=...                            → search results page
+/                                                        → index / workspace list (v1: single workspace redirect)
+/ws/:workspaceId                                         → workspace home / recent channels
+/ws/:workspaceId/c/:channelId                            → channel view, paginated
+/ws/:workspaceId/c/:channelId/m/:messageTs               → channel anchored to message
+/ws/:workspaceId/c/:channelId/t/:threadTs                → thread view
+/ws/:workspaceId/c/:channelId/t/:threadTs/m/:messageTs   → thread anchored to reply
+/ws/:workspaceId/search?q=...                            → search results page
 ```
 
-Slack timestamps (`ts` values like `1718745600.123456`) are URL-safe. No workspace dimension in v1, but the route tree is a prefix of `/ws/:workspaceId/...` so a future multi-workspace version can extend without breaking links.
+Slack timestamps (`ts` values like `1718745600.123456`) are URL-safe. The `/ws/:workspaceId` prefix is included from day one at effectively zero cost — v1 uses a single workspace but the URL scheme is ready for multi-workspace without breaking existing links.
 
-### 7.3 Scheduling
+### 7.3 Scheduling  *(DECIDED)*
 
-**Decision: external scheduler, not in-container cron.**
+**External scheduler. Paved path: UnRAID User Scripts plugin.**
 
-The `archiver` container stays a pure one-shot CLI. Scheduling lives outside of it. Options for the host:
+The `archiver` container is a pure one-shot CLI: run, archive, exit. It knows nothing about scheduling. The host is responsible for invoking it on a cadence.
 
-- **UnRAID "User Scripts" plugin** invoking `docker run --rm slack-archive-archiver` on a cron. Idiomatic for UnRAID. Recommended default.
-- **`docker-compose` with a `restart: "no"` service triggered via a sidecar cron container** (e.g., `mcuadros/ofelia`). Idiomatic for non-UnRAID docker hosts.
-- **systemd timer** on the host.
+- **Paved path:** UnRAID "User Scripts" plugin invoking `docker compose run --rm archiver` daily and `docker compose run --rm archiver --snapshot` weekly.
+- **Alternative paths (documented but not maintained):** sidecar cron container (e.g., `mcuadros/ofelia`), systemd timer, bare crontab.
 
-The plan should ship with a documented User Scripts recipe but not hard-code the choice.
+The README ships with a copy-paste User Scripts recipe for both the daily and weekly jobs.
 
 ### 7.4 Backup & rotation
 
@@ -195,9 +176,9 @@ The periodic snapshot is a new code path. The scheduler (§7.3) triggers it by r
 
 The legacy `backup.sh` and `cleanup.sh` are retired in Stage 8.
 
-### 7.5 Package topology
+### 7.5 Package topology  *(DECIDED)*
 
-**Decision: keep the three-package split and add a shared types package.**
+**Three-package split + shared types with Zod.**
 
 ```
 archive/              → @slack-archive/archiver      (unchanged)
@@ -207,13 +188,18 @@ packages/types/       → @slack-archive/types         (new — per TODO.md)
 pnpm-workspace.yaml   → new, promotes root to a pnpm workspace
 ```
 
-Make the whole repo a pnpm workspace. Shared types become a workspace package that the other three depend on via `workspace:*`. This finally kills the cross-package imports and the type duplication.
+Make the whole repo a pnpm workspace. Shared types become a workspace package that the other three depend on via `workspace:*`. This kills the cross-package imports and type duplication.
 
-### 7.6 Search
+**Types use Zod schemas as the source of truth.** Each shared type is defined as a Zod schema; TypeScript types are inferred via `z.infer<>`. This gives us:
+- Runtime validation at the boundary where the backend serves data and the frontend consumes it.
+- A single schema that is both the type definition and the contract.
+- The archiver can also use Zod schemas to validate what it reads from Slack before writing to disk — but this is optional and lower priority than the frontend/backend contract.
 
-**Decision: embedded search, search index served as JSON via `/api/search`.**
+### 7.6 Search  *(DECIDED, with verification caveat)*
 
-The `archive/src/search.ts` module already builds a search index during the archive run. Current shape (from reading the source):
+**Embedded search, search index served as JSON via `/api/search`.**
+
+The `archive/src/search.ts` module builds a search index during the archive run. Current shape (from reading the source):
 
 ```ts
 SearchFile = {
@@ -227,9 +213,11 @@ SearchFile = {
 The backend already has `/api/search` serving this. The frontend needs:
 - A search UI component (modal or dedicated page).
 - A client-side filter over the loaded index (the index is small enough — thousands of messages, not millions).
-- Navigation: clicking a result → route to `/c/:channelId/m/:messageTs`, leveraging the anchoring work from commit `49aab45`.
+- Navigation: clicking a result → route to `/ws/:workspaceId/c/:channelId/m/:messageTs`, leveraging the anchoring work from commit `49aab45`.
 
 No server-side search engine, no Elasticsearch. The JSON index is the whole database.
+
+**Verification caveat:** `archive/src/search.ts` was written in a single June 30 session and never exercised against the new frontend. During Stage 2 (wiring backend+frontend), we need to verify the index shape matches what the frontend search UI actually needs. If the index structure is wrong, fix it in the archiver before building the search UI in Stage 4.
 
 ---
 
@@ -241,13 +229,15 @@ Each stage is a self-contained branch + PR (or merge) that leaves the repo in a 
 
 Goal: start from a known clean state, preserve the old work for reference.
 
-- [x] Commit uncommitted prettier/import-fix changes to `wip/archive-formatting-import-fix` branch. *(done during plan creation)*
-- [x] Create `refactor/rebuild-plan` branch off `main @ f15c551`. *(this branch)*
-- [ ] Land this plan doc on `refactor/rebuild-plan`.
+- [x] Commit uncommitted prettier/import-fix changes to `wip/archive-formatting-import-fix` branch.
+- [x] Create `refactor/rebuild-plan` branch off `main @ f15c551`.
+- [x] Land this plan doc on `refactor/rebuild-plan`.
+- [x] Resolve all open questions (§9) — all decisions locked.
 - [ ] Push `main` to `origin/main` (13 commits behind).
-- [ ] Decide: is this rebuild happening on `main` directly or on a long-lived `refactor/rebuild` branch? (Recommendation: use `refactor/rebuild-plan` as the long-lived branch, merge stage-by-stage PRs into it, fast-forward `main` when v1 is working end-to-end.)
 
-**Exit:** Plan lives on `refactor/rebuild-plan`. Open items are written down. No code changes yet.
+**Branch strategy (decided):** Stages merge into `refactor/rebuild-plan`. When v1 is working end-to-end, fast-forward merge to `main`. The legacy stack keeps running on `main` until then.
+
+**Exit:** Plan lives on `refactor/rebuild-plan`. All decisions locked. No code changes yet.
 
 ### Stage 1 — Make the archiver actually run
 
@@ -271,26 +261,30 @@ Goal: with data already on disk from Stage 1, the frontend renders it end-to-end
 
 **Exit:** Local dev stack renders a real archive in the browser.
 
-### Stage 3 — Shared types package
+### Stage 3 — Shared types package (Zod)
 
-Goal: eliminate the three copies of `types/slack.ts`.
+Goal: eliminate the three copies of `types/slack.ts`. Establish runtime-validated type contracts.
 
 - Convert root to pnpm workspace (`pnpm-workspace.yaml` + root `package.json`).
-- Create `packages/types/` per the existing `TODO.md` sketch. Export re-wrapped Slack API types, the `ArchiveMessage`, `SearchFile`, `SlackArchiveData`, etc. shapes.
-- Update `archive/`, `backend/`, `frontend/` to depend on `workspace:*`.
+- Create `packages/types/` with Zod schemas as the source of truth for all shared types: `Channel`, `Message`, `ArchiveMessage`, `User`, `SearchFile`, `SlackArchiveData`, `Emoji`, etc.
+- TypeScript types inferred via `z.infer<>` — no separate interface definitions.
+- Update `archive/`, `backend/`, `frontend/` to depend on `@slack-archive/types` via `workspace:*`.
+- Backend uses Zod `.parse()` / `.safeParse()` at the API boundary when serving data. Frontend can validate responses at fetch time.
 - Delete local copies of the same types from each package.
 
-**Exit:** One source of truth for types. `pnpm install && pnpm build` from root works.
+**Exit:** One source of truth for types and validation. `pnpm install && pnpm build` from root works.
 
-### Stage 4 — Deep linking + embedded search
+### Stage 4 — Frontend v2: deep linking + embedded search
 
-Goal: the vision items D and E (routing + embedded search).
+Goal: the vision items D and E (routing + embedded search). This is a fresh frontend build, not a patch of the old `frontend/`.
 
-- URL scheme from §7.2 implemented in the frontend router.
+- Full URL scheme from §7.2 implemented in the frontend router (including `/ws/:workspaceId/` prefix).
+- Channel sidebar, message list, thread view — designed from scratch, pulling patterns from the old `frontend/` selectively where they make sense.
 - Search UI: modal or page, client-side filter over the index from `/api/search`, navigation to deep links on select.
-- Anchoring: integrate with the existing anchoring work from `49aab45` so `/c/:id/m/:ts` scrolls to and highlights the message.
+- Anchoring: `/ws/:id/c/:channelId/m/:ts` scrolls to and highlights the target message.
+- The old `frontend/` directory stays in the tree as reference until Stage 8; the new frontend can coexist alongside it (different package name, different directory if needed, or just replace it in-place).
 
-**Exit:** You can copy a URL to a specific message, paste it in a new tab, and land on that message with it highlighted.
+**Exit:** You can copy a URL to a specific message, paste it in a new tab, and land on that message with it highlighted. Search returns results and clicking one navigates to the message.
 
 ### Stage 5 — Backup rotation inside the archiver
 
@@ -319,10 +313,13 @@ Goal: two buildable container images and a `docker-compose.yml`.
 
 Goal: running on the real UnRAID box.
 
-- Push both images to a registry (GHCR or Docker Hub, under your namespace).
+- Push both images to `ghcr.io/danrlavoie/slack-archive` (archiver + web tags).
 - UnRAID Docker templates for each container (XML files checked into `unraid/` directory for reproducibility).
-- User Scripts recipe for daily archive + weekly snapshot.
-- Document the token-setup flow specific to UnRAID (where to put `.token`, what env vars to set in the template).
+- User Scripts recipes:
+  - **Daily:** `docker compose run --rm archiver` — runs the archive pass.
+  - **Weekly:** `docker compose run --rm archiver --snapshot` — runs archive + creates a dated snapshot and rotates old ones.
+- Document the token-setup flow specific to UnRAID (where to put `.token` / `SLACK_TOKEN`, what env vars to set in the template).
+- Directory layout documented: `/mnt/user/appdata/slack-archive/{data,backups,config}`.
 - First real production run. Monitor backups directory over 2 weeks to verify rotation works.
 
 **Exit:** The system runs on UnRAID unattended for a full week without intervention.
@@ -339,16 +336,16 @@ Goal: single codebase.
 
 ---
 
-## 9. Open questions
+## 9. Resolved questions
 
-These need your input before Stage 1 starts. None of them block landing this plan doc.
+All decided 2026-04-11:
 
-1. **Rendering model:** A, B, or C from §7.1? *My recommendation is A, but it's your call.*
-2. **Backup dir location:** `/appdata/slack-archive/backups/` as a sibling of `data/`, or inside `data/backups/` so a single bind mount covers both? *Recommendation: sibling. Cleaner separation.*
-3. **Registry:** GHCR under `danrlavoie` or Docker Hub? Or build locally on UnRAID and skip the registry entirely? *Local build is simplest for a private single-user app.*
-4. **Workspace naming in URLs:** reserve `/ws/:workspaceId/` prefix now (future-proof) or keep routes workspace-less for v1 and add the prefix later if multi-workspace becomes a real ask? *Recommendation: reserve the prefix now; cost is ~zero.*
-5. **Shell scripts:** delete in Stage 8 or keep them indefinitely as an escape hatch for running the legacy stack? *Recommendation: delete. Parallel implementations are a maintenance tax.*
-6. **Long-lived branch:** merge stages into `refactor/rebuild-plan` and fast-forward `main` when v1 works, or merge each stage into `main` as it lands? *Recommendation: long-lived branch until v1, then single fast-forward merge. The legacy stack keeps running on `main` until then.*
+1. **Rendering model:** SPA (Option A). Frontend treated as v2 — fresh build, not a patch of the old `frontend/`.
+2. **Backup dir location:** Sibling of `data/`. Layout: `/appdata/slack-archive/{data,backups,config}`.
+3. **Registry:** `ghcr.io/danrlavoie/slack-archive`.
+4. **Workspace prefix in URLs:** Include `/ws/:workspaceId/` from day one.
+5. **Shell scripts:** Delete in Stage 8 along with the rest of the legacy stack.
+6. **Branch strategy:** Stages merge into `refactor/rebuild-plan`; fast-forward merge to `main` when v1 is done.
 
 ---
 
@@ -358,6 +355,7 @@ Not architectural decisions, but known hazards to preserve across stages:
 
 - **`cleanup.sh:16` bug.** Root cause of the disk-space failure. Documented so the new rotation code in Stage 5 doesn't repeat the pattern (no `ls` without an explicit directory argument; no string-parsing of `ls` output at all — use `fs.readdirSync`).
 - **`fs.statSync().isDirectory` is a method.** Two places in the current code destructure it as if it were a property. Lint rule / code review awareness.
-- **Slack types drift.** The frontend's hand-written `types/slack.ts` was written against an earlier assumption about the archiver's output and may not match what the archiver actually writes. This is the real motivation for Stage 3 (shared types).
+- **Slack types drift.** The frontend's hand-written `types/slack.ts` was written against an earlier assumption about the archiver's output and may not match what the archiver actually writes. This is the real motivation for Stage 3 (Zod shared types).
 - **ESM entrypoint patterns.** Never use `require.main === module` in a `"type": "module"` package. Use `import.meta.url === \`file://${process.argv[1]}\`` or just drop the guard for CLI entrypoints.
-- **Attachment rendering.** `840afe6` added message-embed rendering to the legacy static site. Verify the equivalent exists in `frontend/src/components/Attachment.tsx` before Stage 8 deletes the legacy path.
+- **Attachment rendering.** `840afe6` added message-embed rendering to the legacy static site. The frontend v2 (Stage 4) needs equivalent rendering before Stage 8 deletes the legacy path. Use the old `frontend/src/components/Attachment.tsx` and legacy `src/create-html.tsx` as references.
+- **Search index shape.** `archive/src/search.ts` was written in one session and never validated against a consumer. Verify it during Stage 2 before building the search UI in Stage 4.
