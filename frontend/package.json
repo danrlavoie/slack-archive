@@ -7,9 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@slack-archive/types": "workspace:*",
