@@ -9,6 +9,7 @@ import {
   isPrivateChannel,
   isPublicChannel,
 } from '../utils/channels';
+import { SearchBar } from './SearchBar';
 
 const ChannelLink = ({ channel, users }: { channel: Channel; users: Users }) => {
   const { workspaceId, channelId } = useParams();
@@ -80,6 +81,7 @@ export const ChannelSidebar = () => {
 
   return (
     <div id="channels">
+      <SearchBar />
       <p className="section">Public Channels</p>
       <ul>{publicChannels}</ul>
 

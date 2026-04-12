@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WorkspaceLayout } from './components/WorkspaceLayout';
 import { ChannelView } from './components/ChannelView';
 import { ThreadView } from './components/ThreadView';
+import { SearchResults } from './components/SearchResults';
 import './styles/main.scss';
 
 const queryClient = new QueryClient();
@@ -17,7 +18,7 @@ function App() {
             <Route path="/ws/:workspaceId" element={<WorkspaceLayout />}>
               <Route path="c/:channelId" element={<ChannelView />} />
               <Route path="c/:channelId/t/:threadTs" element={<ThreadView />} />
-              {/* Search route added in next stage */}
+              <Route path="search" element={<SearchResults />} />
             </Route>
           </Routes>
         </div>

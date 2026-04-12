@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ArchiveMessage, Channel, Users, Emojis } from '@slack-archive/types';
+import type { ArchiveMessage, Channel, Users, Emojis, SearchIndex } from '@slack-archive/types';
 
 const BASE_URL = 'http://localhost:3001';
 
@@ -33,4 +33,9 @@ export const getFileUrl = (channelId: string, fileId: string, fileType: string):
 
 export const getEmojiUrl = (name: string): string => {
   return `${BASE_URL}/api/emoji/${name}`;
+};
+
+export const getSearchIndex = async (): Promise<SearchIndex> => {
+  const { data } = await api.get('/search');
+  return data;
 };
