@@ -57,6 +57,10 @@ export const SearchResults = () => {
   const results = query
     ? Object.entries(searchIndex)
         .filter(([, entry]) => entry.text.toLowerCase().includes(lowerQuery))
+        .sort(
+          ([idA, entryA], [idB, entryB]) =>
+            Number(entryB.ts ?? idB) - Number(entryA.ts ?? idA)
+        )
         .slice(0, 100) // cap results for performance
         .map(([id, entry]) => {
           const chId = channelIdFromFile(entry.file);
