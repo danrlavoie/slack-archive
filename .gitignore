@@ -15,6 +15,7 @@ packages/types/dist/
 
 # Editor / tool settings
 .claude/
+.superpowers/
 .vscode/
 
 # Runtime
