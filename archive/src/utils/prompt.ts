@@ -2,7 +2,7 @@ import { AUTOMATIC_MODE, CHANNEL_TYPES, CHANNELS_DATA_PATH, config, EXCLUDE_CHAN
 import fs from "fs-extra";
 import { checkbox, confirm, input } from "@inquirer/prompts";
 import { logger } from "./logger.js";
-import { Channel, SlackArchiveChannelData } from "../interfaces.js";
+import type { Channel, SlackArchiveChannelData } from "@slack-archive/types";
 
 /**
  * Acquires an API token to connect to Slack.

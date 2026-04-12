@@ -11,6 +11,7 @@ lib
 archive/dist/
 backend/dist/
 frontend/dist/
+packages/types/dist/
 
 # Editor / tool settings
 .claude/

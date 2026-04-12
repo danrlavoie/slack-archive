@@ -1,4 +1,4 @@
-import type { Users } from '../types/slack';
+import type { Users } from '@slack-archive/types';
 
 interface AvatarProps {
   userId?: string;

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^7.5.3",
+    "@slack-archive/types": "workspace:*",
     "@slack/web-api": "^7.9.2",
     "date-fns": "^4.1.0",
     "fs-extra": "^11.3.0",

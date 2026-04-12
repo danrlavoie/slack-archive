@@ -16,7 +16,7 @@ import {
   getAvatarFilePath,
   getChannelUploadFilePath,
 } from "./config.js";
-import {
+import type {
   ArchiveMessage,
   Channel,
   Emojis,
@@ -24,7 +24,7 @@ import {
   Message,
   User,
   Users,
-} from "./interfaces.js";
+} from "@slack-archive/types";
 import { logger } from "./utils/logger.js";
 import { getChannels, getMessages, getUsers } from "./utils/data-load.js";
 

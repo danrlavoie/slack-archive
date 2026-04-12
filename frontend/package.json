@@ -12,7 +12,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@slack/web-api": "^7.9.2",
+    "@slack-archive/types": "workspace:*",
     "@tanstack/react-query": "^5.80.6",
     "axios": "^1.9.0",
     "emoji-datasource": "^15.1.2",

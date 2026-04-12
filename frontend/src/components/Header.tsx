@@ -1,4 +1,4 @@
-import type { Channel, Users } from '../types/slack';
+import type { Channel, Users } from '@slack-archive/types';
 
 interface HeaderProps {
   channel: Channel;

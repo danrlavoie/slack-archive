@@ -1,0 +1,5 @@
+packages:
+  - archive
+  - backend
+  - frontend
+  - packages/*

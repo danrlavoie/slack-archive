@@ -1,4 +1,4 @@
-import type { Users } from "../types/slack";
+import type { Users } from "@slack-archive/types";
 
 export function getName(userId: string | undefined, users: Users) {
   if (!userId) return "Unknown User";

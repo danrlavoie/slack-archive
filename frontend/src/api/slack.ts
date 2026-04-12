@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Channel, Message, Users, Emojis } from '../types/slack';
+import type { ArchiveMessage, Channel, Users, Emojis } from '@slack-archive/types';
 
 const BASE_URL = 'http://localhost:3001';
 
@@ -12,7 +12,7 @@ export const getChannels = async (): Promise<Channel[]> => {
   return data;
 };
 
-export const getMessages = async (channelId: string): Promise<Message[]> => {
+export const getMessages = async (channelId: string): Promise<ArchiveMessage[]> => {
   const { data } = await api.get(`/messages/${channelId}`);
   return data;
 };

@@ -4,7 +4,7 @@ import { differenceBy } from "lodash-es";
 import { retry } from "../utils/backup.js";
 import { DATE_FILE, getChannelDataFilePath } from "../config.js";
 import { logger } from "../utils/logger.js";
-import { ArchiveMessage } from "../interfaces.js";
+import type { ArchiveMessage } from "@slack-archive/types";
 
 export async function write(filePath: string, data: any) {
   await retry({ name: `Writing ${filePath}` }, () => {

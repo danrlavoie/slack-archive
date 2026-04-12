@@ -1,4 +1,4 @@
-import type { Message as MessageType, Users } from '../types/slack';
+import type { ArchiveMessage as MessageType, Users } from '@slack-archive/types';
 import { Message } from './Message';
 import { Files } from './Files';
 import { Reaction } from './Reaction/Reaction';

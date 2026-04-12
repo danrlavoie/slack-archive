@@ -8,9 +8,9 @@ import {
   SEARCH_DATA_PATH,
   USERS_DATA_PATH
 } from '../config.js';
-import { SlackMessage, SlackUser, SlackChannel, SearchIndex } from '../types/slack.js';
+import type { Message, User, Channel, SearchIndex } from '@slack-archive/types';
 
-export const messagesCache: Record<string, SlackMessage[]> = {};
+export const messagesCache: Record<string, Message[]> = {};
 
 async function getFile<T>(filePath: string, returnIfEmpty: T): Promise<T> {
   if (!fs.existsSync(filePath)) {
@@ -20,16 +20,16 @@ async function getFile<T>(filePath: string, returnIfEmpty: T): Promise<T> {
   return data;
 }
 
-export async function getMessages(channelId: string, cachedOk = false): Promise<SlackMessage[]> {
+export async function getMessages(channelId: string, cachedOk = false): Promise<Message[]> {
   if (cachedOk && messagesCache[channelId]) {
     return messagesCache[channelId];
   }
   const filePath = getChannelDataFilePath(channelId);
-  messagesCache[channelId] = await getFile<SlackMessage[]>(filePath, []);
+  messagesCache[channelId] = await getFile<Message[]>(filePath, []);
   return messagesCache[channelId];
 }
 
-export async function getUsers(): Promise<Record<string, SlackUser>> {
+export async function getUsers(): Promise<Record<string, User>> {
   return getFile(USERS_DATA_PATH, {});
 }
 
@@ -37,7 +37,7 @@ export async function getEmoji(): Promise<Record<string, string>> {
   return getFile(EMOJIS_DATA_PATH, {});
 }
 
-export async function getChannels(): Promise<SlackChannel[]> {
+export async function getChannels(): Promise<Channel[]> {
   return getFile(CHANNELS_DATA_PATH, []);
 }
 

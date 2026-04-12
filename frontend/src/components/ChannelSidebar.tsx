@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, Outlet, useParams } from 'react-router-dom';
 import { sortBy } from 'lodash-es';
 import { getChannels, getUsers } from '../api/slack';
-import type { Channel, Users } from '../types/slack';
+import type { Channel, Users } from '@slack-archive/types';
 import {
   isBotChannel,
   isDmChannel,

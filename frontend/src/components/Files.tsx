@@ -1,4 +1,4 @@
-import type { Message } from '../types/slack';
+import type { Message } from '@slack-archive/types';
 import { getFileUrl } from '../api/slack';
 
 interface FilesProps {

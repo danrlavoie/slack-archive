@@ -1,4 +1,4 @@
-import type { Channel, Users } from '../types/slack';
+import type { Channel, Users } from '@slack-archive/types';
 
 export function isPublicChannel(channel: Channel): boolean {
   return !channel.is_im && !channel.is_mpim && !channel.is_private;

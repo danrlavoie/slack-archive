@@ -1,4 +1,4 @@
-import type { Message as MessageType, Users } from '../types/slack';
+import type { Message as MessageType, Users } from '@slack-archive/types';
 import { Avatar } from './Avatar';
 import { Attachment } from './Attachment';
 import { formatTimestamp } from '../utils/timestamp';

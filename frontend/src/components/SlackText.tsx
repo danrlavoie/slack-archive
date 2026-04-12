@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import slackMarkdown from 'slack-markdown';
 import parse, { domToReact } from 'html-react-parser';
-import type { Users } from '../types/slack';
+import type { Users } from '@slack-archive/types';
 import { getName } from '../utils/users';
 
 interface SlackTextProps {

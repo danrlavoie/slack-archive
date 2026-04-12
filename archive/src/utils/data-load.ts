@@ -1,12 +1,12 @@
 import fs from "fs-extra";
 
-import {
+import type {
   ArchiveMessage,
   Channel,
   Emojis,
   SearchFile,
   Users,
-} from "../interfaces.js";
+} from "@slack-archive/types";
 import {
   CHANNELS_DATA_PATH,
   EMOJIS_DATA_PATH,

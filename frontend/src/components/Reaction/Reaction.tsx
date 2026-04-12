@@ -1,4 +1,4 @@
-import type { Reaction as ReactionType, Users } from '../../types/slack';
+import type { Reaction as ReactionType, Users } from '@slack-archive/types';
 import { Emoji } from './Emoji';
 
 interface ReactionProps {
