@@ -16,6 +16,7 @@ import {
   DATA_DIR,
   EMOJIS_DATA_PATH,
   SEARCH_FILE_PATH,
+  SLACK_ARCHIVE_DATA_PATH,
   USERS_DATA_PATH,
 } from "./config.js";
 
@@ -136,13 +137,13 @@ export async function main() {
       await downloadFilesForChannel(channel.id);
     }
 
-    // Handle data merging
-    const shouldMerge = await shouldMergeFiles();
-    if (shouldMerge) {
-      await writeAndMerge(EMOJIS_DATA_PATH, emojis);
-      await writeAndMerge(CHANNELS_DATA_PATH, selectedChannels);
-      await writeAndMerge(USERS_DATA_PATH, users);
-    }
+    // If user chose not to merge, shouldMergeFiles() already cleared the dir.
+    // Either way, writeAndMerge handles both fresh writes and merges.
+    await shouldMergeFiles();
+    await writeAndMerge(EMOJIS_DATA_PATH, emojis);
+    await writeAndMerge(CHANNELS_DATA_PATH, selectedChannels);
+    await writeAndMerge(USERS_DATA_PATH, users);
+    await writeAndMerge(SLACK_ARCHIVE_DATA_PATH, channelsAndAuth);
 
     // Create search index
     const spinner = ora("Building search index").start();

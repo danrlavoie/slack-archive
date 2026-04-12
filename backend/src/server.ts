@@ -8,15 +8,14 @@ import {
   getSearchFile,
   getEmojiFile 
 } from './utils/data-load.js';
-import { STATIC_DIR, EMOJIS_DIR } from './config.js';
+import { DATA_DIR } from './config.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
-// Add this line to serve static files
-app.use('/static', express.static(STATIC_DIR));
+app.use('/static', express.static(DATA_DIR));
 
 // API Routes
 app.get('/api/channels', async (req, res) => {

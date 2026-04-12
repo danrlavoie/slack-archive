@@ -1,10 +1,10 @@
-import type { 
+import type {
   MessageElement as SlackMessage,
   FileElement,
-} from "@slack/web-api/dist/response/ConversationsHistoryResponse";
-import type { Channel as SlackChannel } from "@slack/web-api/dist/response/ConversationsListResponse";
-import type { User as SlackUser } from "@slack/web-api/dist/response/UsersInfoResponse";
-import type { Reaction as SlackReaction } from "@slack/web-api/dist/response/ReactionsGetResponse";
+} from "@slack/web-api/dist/types/response/ConversationsHistoryResponse";
+import type { Channel as SlackChannel } from "@slack/web-api/dist/types/response/ConversationsListResponse";
+import type { User as SlackUser } from "@slack/web-api/dist/types/response/UsersInfoResponse";
+import type { Reaction as SlackReaction } from "@slack/web-api/dist/types/response/ReactionsGetResponse";
 import type { AuthTestResponse } from "@slack/web-api";
 
 export type User = SlackUser;

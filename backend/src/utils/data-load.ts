@@ -1,14 +1,14 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { 
-  CHANNELS_DATA_PATH, 
-  EMOJIS_DATA_PATH, 
-  EMOJIS_DIR, 
-  getChannelDataFilePath, 
-  SEARCH_DATA_PATH, 
-  USERS_DATA_PATH 
+import {
+  CHANNELS_DATA_PATH,
+  EMOJIS_DATA_PATH,
+  EMOJIS_DIR,
+  getChannelDataFilePath,
+  SEARCH_DATA_PATH,
+  USERS_DATA_PATH
 } from '../config.js';
-import { SlackMessage, SlackUser, SlackChannel, SearchData } from '../types/slack.js';
+import { SlackMessage, SlackUser, SlackChannel, SearchIndex } from '../types/slack.js';
 
 export const messagesCache: Record<string, SlackMessage[]> = {};
 
@@ -41,13 +41,11 @@ export async function getChannels(): Promise<SlackChannel[]> {
   return getFile(CHANNELS_DATA_PATH, []);
 }
 
-export async function getSearchFile(): Promise<SearchData> {
-  const returnIfEmpty: SearchData = { users: {}, channels: {}, messages: {}, pages: {} };
+export async function getSearchFile(): Promise<SearchIndex> {
   if (!fs.existsSync(SEARCH_DATA_PATH)) {
-    return returnIfEmpty;
+    return {};
   }
-  const contents = await readFile(SEARCH_DATA_PATH, 'utf8');
-  return JSON.parse(contents.slice(21, contents.length - 1));
+  return readJSON<SearchIndex>(SEARCH_DATA_PATH);
 }
 
 export async function readFile(filePath: string, encoding: BufferEncoding = 'utf8'): Promise<string> {

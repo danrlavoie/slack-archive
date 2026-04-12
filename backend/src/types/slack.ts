@@ -17,9 +17,8 @@ export interface SlackUser {
   // Add other user properties as needed
 }
 
-export interface SearchData {
-  users: Record<string, any>;
-  channels: Record<string, any>;
-  messages: Record<string, any>;
-  pages: Record<string, any>;
-}
+export type SearchIndex = Record<string, {
+  text: string;
+  file: string;
+  ts?: string;
+}>;
