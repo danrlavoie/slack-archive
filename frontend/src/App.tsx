@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ChannelSidebar } from './components/ChannelSidebar';
+import { WorkspaceLayout } from './components/WorkspaceLayout';
 import { ChannelView } from './components/ChannelView';
 import './styles/main.scss';
 
@@ -12,8 +12,10 @@ function App() {
       <BrowserRouter>
         <div id="index">
           <Routes>
-            <Route path="/" element={<ChannelSidebar />}>
-              <Route path="/channels/:channelId" element={<ChannelView />} />
+            <Route path="/" element={<Navigate to="/ws/default/" replace />} />
+            <Route path="/ws/:workspaceId" element={<WorkspaceLayout />}>
+              <Route path="c/:channelId" element={<ChannelView />} />
+              {/* Thread and search routes added in later tasks */}
             </Route>
           </Routes>
         </div>
