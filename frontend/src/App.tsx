@@ -17,7 +17,9 @@ function App() {
             <Route path="/" element={<Navigate to="/ws/default/" replace />} />
             <Route path="/ws/:workspaceId" element={<WorkspaceLayout />}>
               <Route path="c/:channelId" element={<ChannelView />} />
+              <Route path="c/:channelId/m/:messageTs" element={<ChannelView />} />
               <Route path="c/:channelId/t/:threadTs" element={<ThreadView />} />
+              <Route path="c/:channelId/t/:threadTs/m/:messageTs" element={<ThreadView />} />
               <Route path="search" element={<SearchResults />} />
             </Route>
           </Routes>

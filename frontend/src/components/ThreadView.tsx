@@ -5,6 +5,7 @@ import { Header } from './Header';
 import { Message } from './Message';
 import { Files } from './Files';
 import { Reaction } from './Reaction/Reaction';
+import { useMessageAnchor } from '../hooks/useMessageAnchor';
 
 export const ThreadView = () => {
   const { workspaceId, channelId, threadTs } = useParams();
@@ -27,6 +28,8 @@ export const ThreadView = () => {
 
   const channel = channels.find(c => c.id === channelId);
   const parentMessage = messages.find(m => m.ts === threadTs);
+
+  useMessageAnchor(isLoading);
 
   if (isLoading) {
     return <div id="messages"><div className="loading">Loading thread...</div></div>;

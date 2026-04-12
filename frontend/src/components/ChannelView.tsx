@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { getChannels, getMessages, getUsers } from '../api/slack';
 import { Header } from './Header';
 import { ParentMessage } from './ParentMessage';
+import { useMessageAnchor } from '../hooks/useMessageAnchor';
 
 export const ChannelView = () => {
   const { channelId } = useParams();
@@ -24,6 +25,8 @@ export const ChannelView = () => {
   });
 
   const channel = channels.find(c => c.id === channelId);
+
+  useMessageAnchor(messagesLoading);
 
   if (!channel) {
     return <div id="messages">Channel not found</div>;

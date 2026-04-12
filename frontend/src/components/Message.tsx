@@ -1,51 +1,25 @@
 import type { Message as MessageType, Users } from '@slack-archive/types';
+import { Link, useParams } from 'react-router-dom';
 import { Avatar } from './Avatar';
 import { Attachment } from './Attachment';
 import { formatTimestamp } from '../utils/timestamp';
 import { getName } from '../utils/users';
 import { SlackText } from './SlackText';
-import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 
 interface MessageProps {
   message: MessageType;
   users: Users;
 }
 
-/**
- * Message component to display a single Slack message.
- * It includes the user's avatar, username, timestamp, text content,
- * and any attachments associated with the message.
- * @param {MessageType} message - The Slack message data to be rendered
- * @param {Users} users - An object containing user profiles keyed by user ID.
- * @returns {JSX.Element} - Returns a JSX element representing the message.
- * @example
- * <Message message={message} users={users} />
- */
 export const Message = ({ message, users }: MessageProps) => {
+  const { workspaceId, channelId, threadTs } = useParams();
   const username = getName(message.user, users);
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Handle clicking on timestamp
-  const handleTimestampClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const messageId = message.ts;
-    if (!messageId) return;
-    // Update URL with message timestamp
-    navigate(`${location.pathname}#${messageId}`, { replace: true });
-    // Scroll message into view
-    document.getElementById(messageId)?.scrollIntoView({ behavior: 'smooth' });
-  };
 
-  // Check if this message is targeted in URL on load
-  useEffect(() => {
-    const messageId = message.ts;
-    if (!messageId) return;
-    if (location.hash === `#${messageId}`) {
-      document.getElementById(messageId)?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [location.hash, message.ts]);
+  // Build the deep link URL for this message's timestamp
+  const basePath = `/ws/${workspaceId}/c/${channelId}`;
+  const tsLink = threadTs
+    ? `${basePath}/t/${threadTs}/m/${message.ts}`
+    : `${basePath}/m/${message.ts}`;
 
   const attachments = message.attachments?.map((attachment) => (
     <Attachment key={attachment.id} {...attachment} />
@@ -53,18 +27,14 @@ export const Message = ({ message, users }: MessageProps) => {
 
   return (
     <div className="message-gutter" id={message.ts}>
-      <div className="" data-stringify-ignore="true">
+      <div data-stringify-ignore="true">
         <Avatar userId={message.user} users={users} />
       </div>
-      <div className="">
+      <div>
         <span className="sender">{username}</span>
-        <span 
-          className="timestamp" 
-          onClick={handleTimestampClick}
-          style={{ cursor: 'pointer' }}
-        >
+        <Link className="timestamp" to={tsLink}>
           {formatTimestamp(message)}
-        </span>
+        </Link>
         <br />
         <div>
           <SlackText text={message.text || ''} users={users} />

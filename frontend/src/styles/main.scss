@@ -109,18 +109,9 @@ audio, video {
   margin: 10px;
   scroll-margin-top: 120px;
 
-  &:target {
-    background-color: #fafafa;
-    border: 2px solid #39113E;
-    padding: 10px;
-    border-radius: 5px; 
-  }
-
   div:first-of-type {
     flex-shrink: 0;
   }
-
-
 }
 .parent-message {
   .parent-message {
@@ -166,6 +157,11 @@ audio, video {
   font-weight: 200;
   font-size: 13px;
   color: rgb(97, 96, 97);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .header {
@@ -529,4 +525,20 @@ audio, video {
   padding: 20px;
   color: #616061;
   text-align: center;
+}
+
+.message-highlight {
+  animation: highlight-fade 2s ease-out;
+}
+
+@keyframes highlight-fade {
+  0% {
+    background-color: #fff3b0;
+  }
+  70% {
+    background-color: #fff3b0;
+  }
+  100% {
+    background-color: transparent;
+  }
 }
