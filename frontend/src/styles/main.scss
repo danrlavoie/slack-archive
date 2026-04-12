@@ -371,33 +371,6 @@ audio, video {
   overflow: scroll;
 }
 
-#search {
-  margin: 10px;
-  text-align: center;
-
-  ul {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  li {
-    padding: 5px;
-    border-bottom: 1px solid #E2E2E2;
-    background: hsl(0deg 0% 98%);
-    border-radius: 5px;
-    width: 600px;
-    text-align: left;
-    margin-bottom: 5px;
-  }
-
-  a {
-    text-decoration: none;
-    color: unset;
-  }
-}
-
 .thread-link {
   margin-left: 46px;
   margin-top: 4px;
