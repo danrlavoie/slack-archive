@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { ArchiveMessage, Channel, Users, Emojis, SearchIndex } from '@slack-archive/types';
 
-const BASE_URL = 'http://localhost:3001';
+const BASE_URL = 'http://localhost:3100';
 
 const api = axios.create({
   baseURL: `${BASE_URL}/api`

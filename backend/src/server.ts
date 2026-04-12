@@ -11,7 +11,7 @@ import {
 import { DATA_DIR } from './config.js';
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3100;
 
 app.use(cors());
 app.use(express.json());

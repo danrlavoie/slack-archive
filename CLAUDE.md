@@ -32,7 +32,7 @@ Commands (run inside the respective subdirectory):
 | Project    | Install       | Dev                             | Build          |
 |------------|---------------|---------------------------------|----------------|
 | `archive/` | `pnpm i`      | `pnpm start` (ts-node src/cli.ts) | `pnpm build` (tsc) |
-| `backend/` | `pnpm i`      | `pnpm dev` (ts-node ESM loader on `src/server.ts`, port 3001) | `pnpm build`   |
+| `backend/` | `pnpm i`      | `pnpm dev` (ts-node ESM loader on `src/server.ts`, port 3100) | `pnpm build`   |
 | `frontend/`| `pnpm i`      | `pnpm dev` (Vite)               | `pnpm build` (`tsc -b && vite build`) |
 | `frontend/`| —             | `pnpm lint` (eslint)            | `pnpm preview` |
 
