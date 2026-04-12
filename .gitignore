@@ -6,3 +6,21 @@ slack-archive
 .token
 lib
 .env
+
+# Build output
+archive/dist/
+backend/dist/
+frontend/dist/
+
+# Editor / tool settings
+.claude/
+.vscode/
+
+# Runtime
+logs/
+
+# Orphaned prototypes (superseded by archive/src/)
+src/config.js
+src/data-load.js
+src/interfaces.js
+src/retry.js
