@@ -8,6 +8,10 @@ export const DATA_DIR = process.env.ARCHIVE_DATA_DIR
   ? path.resolve(process.env.ARCHIVE_DATA_DIR)
   : path.join(__dirname, '../../slack-archive/data');
 
+export const FRONTEND_DIST_DIR = process.env.FRONTEND_DIST_DIR
+  ? path.resolve(process.env.FRONTEND_DIST_DIR)
+  : path.join(__dirname, '../../frontend/dist');
+
 export const FILES_DIR = path.join(DATA_DIR, 'files');
 export const EMOJIS_DIR = path.join(DATA_DIR, 'emojis');
 export const AVATARS_DIR = path.join(DATA_DIR, 'avatars');
