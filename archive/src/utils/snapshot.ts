@@ -51,3 +51,18 @@ export async function rotateSnapshots(
   }
   return toDelete;
 }
+
+/**
+ * Take a dated snapshot of `dataDir` into `backupsDir`, then prune
+ * old snapshots down to `keep` (default 5). Uses the current date.
+ * Returns the path of the snapshot that was just created.
+ */
+export async function runSnapshot(
+  dataDir: string,
+  backupsDir: string,
+  keep: number = 5,
+): Promise<string> {
+  const target = await createSnapshot(dataDir, backupsDir, new Date());
+  await rotateSnapshots(backupsDir, keep);
+  return target;
+}

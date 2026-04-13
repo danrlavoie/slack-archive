@@ -3,7 +3,8 @@ import fs from "fs-extra";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
-import { createSnapshot, rotateSnapshots } from "../snapshot.js";
+import { format } from "date-fns";
+import { createSnapshot, rotateSnapshots, runSnapshot } from "../snapshot.js";
 
 let scratch: string;
 
@@ -123,5 +124,42 @@ describe("rotateSnapshots", () => {
 
     expect(deleted).toEqual([]);
     expect(await fs.pathExists(backupsDir)).toBe(false);
+  });
+});
+
+describe("runSnapshot", () => {
+  test("creates today's snapshot and rotates to keep 5", async () => {
+    const dataDir = path.join(scratch, "data");
+    const backupsDir = path.join(scratch, "backups");
+    await fs.ensureDir(dataDir);
+    await fs.writeFile(path.join(dataDir, "today.json"), "today");
+
+    // Pre-seed 5 older snapshots; after runSnapshot there should be
+    // 5 total (the 4 most recent existing + today's new one).
+    const seededDates = [
+      "2020-01-01",
+      "2020-01-02",
+      "2020-01-03",
+      "2020-01-04",
+      "2020-01-05",
+    ];
+    for (const d of seededDates) {
+      await fs.ensureDir(path.join(backupsDir, d));
+    }
+
+    await runSnapshot(dataDir, backupsDir);
+
+    const remaining = (await fs.readdir(backupsDir)).sort();
+    // Today's dir is always >= 2026-04-12, so it sorts to the end
+    // and the oldest seeded one (2020-01-01) gets pruned.
+    expect(remaining.length).toBe(5);
+    expect(remaining.includes("2020-01-01")).toBe(false);
+    // Use the same local-time formatter as createSnapshot to avoid
+    // a UTC-vs-local timezone off-by-one near midnight.
+    const today = format(new Date(), "yyyy-MM-dd");
+    expect(remaining.includes(today)).toBe(true);
+    expect(
+      await fs.readFile(path.join(backupsDir, today, "today.json"), "utf8"),
+    ).toBe("today");
   });
 });
