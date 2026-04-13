@@ -1,14 +1,16 @@
 import express from 'express';
 import cors from 'cors';
-import { 
-  getChannels, 
-  getMessages, 
-  getUsers, 
-  getEmoji, 
+import fs from 'fs-extra';
+import path from 'path';
+import {
+  getChannels,
+  getMessages,
+  getUsers,
+  getEmoji,
   getSearchFile,
-  getEmojiFile 
+  getEmojiFile
 } from './utils/data-load.js';
-import { DATA_DIR } from './config.js';
+import { DATA_DIR, FRONTEND_DIST_DIR } from './config.js';
 
 const app = express();
 const port = process.env.PORT || 3100;
@@ -75,6 +77,19 @@ app.get('/api/emoji/:name', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch emoji' });
   }
 });
+
+// SPA fallback — MUST come after all /api/* routes.
+// Gated on FRONTEND_DIST_DIR existing so dev mode (where the frontend
+// is served by Vite on a separate port) is unaffected.
+if (fs.existsSync(FRONTEND_DIST_DIR)) {
+  app.use(express.static(FRONTEND_DIST_DIR));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(FRONTEND_DIST_DIR, 'index.html'));
+  });
+  console.log(`Serving frontend SPA from ${FRONTEND_DIST_DIR}`);
+} else {
+  console.log(`FRONTEND_DIST_DIR not found at ${FRONTEND_DIST_DIR} — skipping SPA mount (dev mode)`);
+}
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
