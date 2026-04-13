@@ -7,16 +7,19 @@ import ora from "ora";
 // Internal utility imports
 import { logger } from "./utils/logger.js";
 import { createBackup, deleteBackup, deleteOlderBackups } from "./utils/backup.js";
+import { runSnapshot } from "./utils/snapshot.js";
 import { getUsers } from "./utils/data-load.js";
 
 // Internal config and constants
 import {
   AUTOMATIC_MODE,
+  BACKUPS_DIR,
   CHANNELS_DATA_PATH,
   DATA_DIR,
   EMOJIS_DATA_PATH,
   SEARCH_FILE_PATH,
   SLACK_ARCHIVE_DATA_PATH,
+  SNAPSHOT_MODE,
   USERS_DATA_PATH,
 } from "./config.js";
 
@@ -154,6 +157,18 @@ export async function main() {
     await deleteBackup(backupDir);
     await deleteOlderBackups();
     await writeLastSuccessfulArchiveDate();
+
+    if (SNAPSHOT_MODE) {
+      try {
+        const target = await runSnapshot(DATA_DIR, BACKUPS_DIR);
+        logger.info(`Snapshot created at ${target}`);
+      } catch (snapshotError) {
+        // Archive already succeeded; don't let snapshot failure taint the run.
+        logger.error("Snapshot failed (archive itself was successful)", {
+          error: snapshotError,
+        });
+      }
+    }
 
     logger.info("Archive process complete");
   } catch (error) {
