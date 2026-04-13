@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
-import { createSnapshot } from "../snapshot.js";
+import { createSnapshot, rotateSnapshots } from "../snapshot.js";
 
 let scratch: string;
 
@@ -53,5 +53,34 @@ describe("createSnapshot", () => {
 
     expect(await fs.pathExists(path.join(staleTarget, "new.json"))).toBe(true);
     expect(await fs.pathExists(path.join(staleTarget, "old.json"))).toBe(false);
+  });
+});
+
+describe("rotateSnapshots", () => {
+  test("keeps the N most recent dated directories, deletes the rest", async () => {
+    const backupsDir = path.join(scratch, "backups");
+    const dates = [
+      "2026-04-06",
+      "2026-04-07",
+      "2026-04-08",
+      "2026-04-09",
+      "2026-04-10",
+      "2026-04-11",
+      "2026-04-12",
+    ];
+    for (const d of dates) {
+      await fs.ensureDir(path.join(backupsDir, d));
+    }
+
+    await rotateSnapshots(backupsDir, 5);
+
+    const remaining = (await fs.readdir(backupsDir)).sort();
+    expect(remaining).toEqual([
+      "2026-04-08",
+      "2026-04-09",
+      "2026-04-10",
+      "2026-04-11",
+      "2026-04-12",
+    ]);
   });
 });
