@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# DEPRECATED: This script targets the legacy slack-archive output path
+# and is retained only until Stage 8 of the rebuild (see docs/rebuild-plan.md).
+# New deployments should use `pnpm --filter @slack-archive/archiver start -- --snapshot`
+# which handles snapshotting and rotation inside the archiver itself.
+
 # Usage:
 # ./backup.sh
 # Copies the present slack-archive from the current repo into a date-specific slack-archive backup folder in the home directory
