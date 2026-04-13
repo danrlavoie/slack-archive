@@ -83,4 +83,45 @@ describe("rotateSnapshots", () => {
       "2026-04-12",
     ]);
   });
+
+  test("ignores entries that don't match YYYY-MM-DD", async () => {
+    const backupsDir = path.join(scratch, "backups");
+    await fs.ensureDir(path.join(backupsDir, "2026-04-12"));
+    await fs.ensureDir(path.join(backupsDir, "2026-04-11"));
+    await fs.ensureDir(path.join(backupsDir, "README.md"));
+    await fs.ensureDir(path.join(backupsDir, "not-a-date"));
+    await fs.writeFile(path.join(backupsDir, "stray.txt"), "hi");
+
+    await rotateSnapshots(backupsDir, 5);
+
+    const remaining = (await fs.readdir(backupsDir)).sort();
+    expect(remaining).toEqual([
+      "2026-04-11",
+      "2026-04-12",
+      "README.md",
+      "not-a-date",
+      "stray.txt",
+    ]);
+  });
+
+  test("is a no-op when fewer dirs exist than keep count", async () => {
+    const backupsDir = path.join(scratch, "backups");
+    await fs.ensureDir(path.join(backupsDir, "2026-04-11"));
+    await fs.ensureDir(path.join(backupsDir, "2026-04-12"));
+
+    const deleted = await rotateSnapshots(backupsDir, 5);
+
+    expect(deleted).toEqual([]);
+    const remaining = (await fs.readdir(backupsDir)).sort();
+    expect(remaining).toEqual(["2026-04-11", "2026-04-12"]);
+  });
+
+  test("is a no-op when backupsDir does not exist", async () => {
+    const backupsDir = path.join(scratch, "does-not-exist");
+
+    const deleted = await rotateSnapshots(backupsDir, 5);
+
+    expect(deleted).toEqual([]);
+    expect(await fs.pathExists(backupsDir)).toBe(false);
+  });
 });
