@@ -37,4 +37,21 @@ describe("createSnapshot", () => {
       await fs.readFile(path.join(target, "files", "C123", "a.txt"), "utf8"),
     ).toBe("hello");
   });
+
+  test("overwrites an existing same-day snapshot (no merge)", async () => {
+    const dataDir = path.join(scratch, "data");
+    const backupsDir = path.join(scratch, "backups");
+    await fs.ensureDir(dataDir);
+    await fs.writeFile(path.join(dataDir, "new.json"), "new");
+
+    // Pre-seed a stale snapshot with a file that should NOT survive.
+    const staleTarget = path.join(backupsDir, "2026-04-12");
+    await fs.ensureDir(staleTarget);
+    await fs.writeFile(path.join(staleTarget, "old.json"), "old");
+
+    await createSnapshot(dataDir, backupsDir, new Date("2026-04-12T10:00:00Z"));
+
+    expect(await fs.pathExists(path.join(staleTarget, "new.json"))).toBe(true);
+    expect(await fs.pathExists(path.join(staleTarget, "old.json"))).toBe(false);
+  });
 });
