@@ -1,0 +1,27 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    image: ghcr.io/danrlavoie/slack-archive-web:local
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3100}:3100"
+    volumes:
+      - ${DATA_DIR:-./data}:/app/slack-archive/data:ro
+    environment:
+      NODE_ENV: production
+
+  archiver:
+    build:
+      context: .
+      dockerfile: docker/archiver.Dockerfile
+    image: ghcr.io/danrlavoie/slack-archive-archiver:local
+    restart: "no"
+    profiles: ["archive"]
+    volumes:
+      - ${DATA_DIR:-./data}:/app/slack-archive/data
+      - ${BACKUPS_DIR:-./backups}:/app/slack-archive/backups
+      - ${CONFIG_DIR:-./config}:/app/slack-archive/config:ro
+    environment:
+      SLACK_TOKEN: ${SLACK_TOKEN:-}
