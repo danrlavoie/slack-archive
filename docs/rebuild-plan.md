@@ -298,7 +298,7 @@ Goal: the vision item C (weekly snapshot with 5-backup rotation).
 
 **Exit:** `pnpm --filter archiver start -- --snapshot` produces a dated backup and prunes old ones. Verified by running it 6+ times with faked dates or by unit-testing the rotation logic.
 
-### Stage 6 — Dockerize
+### Stage 6 — Dockerize  *(COMPLETE — 2026-04-14)*
 
 Goal: two buildable container images and a `docker-compose.yml`.
 
