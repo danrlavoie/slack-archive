@@ -15,6 +15,7 @@
     "axios": "^1.9.0",
     "emoji-datasource": "^15.1.2",
     "html-react-parser": "^5.2.5",
+    "lodash-es": "^4.17.21",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.0.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
