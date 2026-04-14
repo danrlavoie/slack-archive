@@ -83,7 +83,10 @@ app.get('/api/emoji/:name', async (req, res) => {
 // is served by Vite on a separate port) is unaffected.
 if (fs.existsSync(FRONTEND_DIST_DIR)) {
   app.use(express.static(FRONTEND_DIST_DIR));
-  app.get('*', (_req, res) => {
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ error: 'Not found' });
+    }
     res.sendFile(path.join(FRONTEND_DIST_DIR, 'index.html'));
   });
   console.log(`Serving frontend SPA from ${FRONTEND_DIST_DIR}`);
