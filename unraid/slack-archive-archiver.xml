@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>slack-archive-archiver</Name>
+  <Repository>ghcr.io/danrlavoie/slack-archive-archiver:latest</Repository>
+  <Registry>https://ghcr.io/danrlavoie/slack-archive-archiver</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/danrlavoie/slack-archive/issues</Support>
+  <Project>https://github.com/danrlavoie/slack-archive</Project>
+  <Overview>One-shot archiver CLI for the slack-archive project. Fetches new Slack messages and writes them to the bind-mounted data directory. Not a long-running service — triggered manually or via UnRAID User Scripts cron.</Overview>
+  <Category>Tools: Productivity:</Category>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/danrlavoie/slack-archive/main/unraid/icon.png</Icon>
+  <ExtraParams>--restart=no</ExtraParams>
+  <PostArgs>--automatic</PostArgs>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Data directory" Target="/app/slack-archive/data" Default="/mnt/user/appdata/slack-archive/data" Mode="rw" Description="Read-write bind mount where the archiver writes channel JSON, users, emoji, and search index." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/slack-archive/data</Config>
+  <Config Name="Backups directory" Target="/app/slack-archive/backups" Default="/mnt/user/appdata/slack-archive/backups" Mode="rw" Description="Read-write bind mount where --snapshot runs create dated backups." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/slack-archive/backups</Config>
+  <Config Name="Config directory" Target="/app/slack-archive/config" Default="/mnt/user/appdata/slack-archive/config" Mode="ro" Description="Read-only bind mount containing the .token file with the Slack user token." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/slack-archive/config</Config>
+  <Config Name="SLACK_TOKEN" Target="SLACK_TOKEN" Default="" Mode="" Description="Optional: Slack user token. If set, takes precedence over the .token file in the config directory." Type="Variable" Display="always" Required="false" Mask="true"/>
+</Container>
