@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>slack-archive-web</Name>
+  <Repository>ghcr.io/danrlavoie/slack-archive-web:latest</Repository>
+  <Registry>https://ghcr.io/danrlavoie/slack-archive-web</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/danrlavoie/slack-archive/issues</Support>
+  <Project>https://github.com/danrlavoie/slack-archive</Project>
+  <Overview>Web UI for the slack-archive project. Serves the Express API and the built frontend SPA from a read-only bind mount of the archive data directory.</Overview>
+  <Category>Tools: Productivity:</Category>
+  <WebUI>http://[IP]:[PORT:3100]/</WebUI>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/danrlavoie/slack-archive/main/unraid/icon.png</Icon>
+  <ExtraParams>--restart unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="WebUI Port" Target="3100" Default="3100" Mode="tcp" Description="HTTP port the backend listens on." Type="Port" Display="always" Required="true" Mask="false">3100</Config>
+  <Config Name="Data directory" Target="/app/slack-archive/data" Default="/mnt/user/appdata/slack-archive/data" Mode="ro" Description="Read-only bind mount of the archive data directory written by the archiver container." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/slack-archive/data</Config>
+</Container>
