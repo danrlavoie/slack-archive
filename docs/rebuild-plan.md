@@ -309,7 +309,7 @@ Goal: two buildable container images and a `docker-compose.yml`.
 
 **Exit:** `docker compose up -d web` serves the site on a mapped port. `docker compose run --rm archiver` runs a fresh archive pass.
 
-### Stage 7 — UnRAID deployment
+### Stage 7 — UnRAID deployment  *(COMPLETE — 2026-04-15)*
 
 Goal: running on the real UnRAID box.
 
