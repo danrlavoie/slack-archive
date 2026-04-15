@@ -155,44 +155,6 @@ copy archive-nginx.conf to /etc/nginx/conf.d/archive-nginx.conf and ensure the e
 
 Check your firewall to ensure your preferred security settings are in place, and start nginx to begin serving the website.
 
-When you start the app, you can paste it in the command line, OR create a file called `.token` in the slack-archive directory (created when the command is first run) and paste it in there. You can also `export SLACK_TOKEN={token}` to set an environment variable that will be used instead.
-
-## Automating it
-
-Three shell scripts are provided to allow for automating the archive, backup, and cleanup in cycles.
-
-### exec_archive.sh
-
-This runs the archive process in automatic mode, assuming it has a SLACK_TOKEN available in the environment where it runs. Results are stored within the git repo in the /slack-archive folder.
-
-### backup.sh
-
-This copies the current contents of the repo's /slack-archive folder to $home/slack-archive/slack-archive-YYYY-MM-DD, a date assigned to the date the backup was run (NOT the date the archive was initiallhy taken).
-
-### cleanup.sh
-
-Since Slack archives, with media files included, can take up several gigabytes of storage, this removes old archives. It will only execute if it finds 8 or more backups in the backup directory, and it deletes the oldest backup from disk.
-
-### Putting it together
-
-Set up invocations of exec_archive.sh, backup.sh, and cleanup.sh into a crontab so you're protected in the event the Slack API breaks at some point.
-
-Then, host your current copy of slack-archive on a webserver (i.e. with nginx) if you want to view it from a local network.
-
-## Hosting with nginx
-
-Since nginx runs through systemctl, you can start and restart the service with the root crontab:
-
-```
-sudo crontab -e
-# in the crontab
-@hourly systemctl restart nginx
-```
-
-copy archive-nginx.conf to /etc/nginx/conf.d/archive-nginx.conf and ensure the exec_archive.sh script has executed, to copy your slack archive website to /var/www/slack-archive.
-
-Check your firewall to ensure your preferred security settings are in place, and start nginx to begin serving the website.
-
 ---
 
 ## Docker deployment
@@ -213,71 +175,10 @@ docker compose run --rm archiver      # run one archive pass
 
 The `archiver` service uses `profiles: ["archive"]`, so `docker compose up -d` starts only the web container. Run the archiver explicitly with `docker compose run --rm archiver`.
 
-### UnRAID directory layout
+### UnRAID
 
-The stack is designed around a single appdata directory:
+See [`unraid/README.md`](unraid/README.md) for deployment instructions. The checked-in Docker templates (`unraid/slack-archive-web.xml` and `unraid/slack-archive-archiver.xml`) can be copied to `/boot/config/plugins/dockerMan/templates-user/` and imported via **Docker → Add Container → User templates**.
 
-```
-/mnt/user/appdata/slack-archive/
-├── data/          canonical archive — readable by web, writable by archiver
-├── backups/       dated snapshots (YYYY-MM-DD/), rotated to keep 5 most recent
-└── config/
-    └── .token     Slack user token (alternative to SLACK_TOKEN env var)
-```
-
-Bind these into the containers via the env var overrides in `.env` (or via the UnRAID Docker template):
-
-- `DATA_DIR=/mnt/user/appdata/slack-archive/data`
-- `BACKUPS_DIR=/mnt/user/appdata/slack-archive/backups`
-- `CONFIG_DIR=/mnt/user/appdata/slack-archive/config`
-- `WEB_PORT=3100` (or whatever host port you want to publish)
-
-### Scheduled runs (UnRAID User Scripts)
-
-Install the **User Scripts** plugin from Community Applications. Add two scripts:
-
-**Daily archive** (suggested schedule: `0 1 * * *` — 01:00):
-```bash
-#!/bin/bash
-cd /mnt/user/appdata/slack-archive
-docker compose run --rm archiver
-```
-
-**Weekly snapshot** (suggested schedule: `0 2 * * 0` — Sunday 02:00):
-```bash
-#!/bin/bash
-cd /mnt/user/appdata/slack-archive
-docker compose run --rm archiver --snapshot
-```
-
-The `--rm` flag ensures archiver containers don't accumulate. User Scripts captures the command's stdout/stderr, so you can review each run's output from the plugin UI.
-
-### Debugging a stopped archiver
-
-The archiver container uses `ENTRYPOINT ["node", "archive/dist/cli.js"]`, which means arguments appended to `docker compose run` go straight to the CLI. This is convenient for passing `--snapshot` but makes shell access slightly less obvious.
-
-**View logs from the most recent run.** If the run was invoked via `run --rm`, the container is already gone — capture stdout directly:
-```bash
-docker compose run --rm archiver 2>&1 | tee /tmp/archive-$(date +%F).log
-```
-
-If you drop `--rm` for active debugging, the stopped container persists and you can inspect it:
-```bash
-docker compose run --name archiver-debug archiver    # no --rm
-docker compose logs archiver-debug
-docker inspect archiver-debug
-docker rm archiver-debug                              # clean up when done
-```
-
-**Shell into the image (bypass ENTRYPOINT).** To get an interactive shell in the runtime image:
-```bash
-docker compose run --rm --entrypoint bash archiver
-```
-You'll land in `/app`. The built CLI is at `archive/dist/cli.js`; bind-mounted state is under `/app/slack-archive/{data,backups,config}`. Inspect `.last-successful-run`, run the CLI manually with different flags, or tail files in `data/`.
-
-**Rerun the CLI manually from the shell.** Once inside the container:
-```bash
-node archive/dist/cli.js --help
-node archive/dist/cli.js                 # full run
-node archive/dist/cli.js --snapshot      # run + snapshot
-```
+Published images:
+- `ghcr.io/danrlavoie/slack-archive-web:latest`
+- `ghcr.io/danrlavoie/slack-archive-archiver:latest`
