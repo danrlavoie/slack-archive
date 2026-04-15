@@ -70,7 +70,7 @@ docker run --rm \
 
 Schedule: `0 2 * * 0` (cron).
 
-`--snapshot` runs a normal archive pass and then writes a dated backup under `backups/YYYY-MM-DD/` and rotates old backups according to `archive/src/backup.ts`.
+`--snapshot` runs a normal archive pass and then writes a dated backup under `backups/YYYY-MM-DD/` and rotates old backups according to `archive/src/utils/backup.ts`.
 
 ## Debugging a failed run
 
