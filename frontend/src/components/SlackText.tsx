@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import slackMarkdown from 'slack-markdown';
-import parse, { domToReact } from 'html-react-parser';
+import parse, { domToReact, Element, type DOMNode } from 'html-react-parser';
 import type { Users } from '@slack-archive/types';
 import { getName } from '../utils/users';
 
@@ -30,32 +30,33 @@ export const SlackText = ({ text, users }: SlackTextProps) => {
     });
     
     return parse(formatted, {
-      replace: (domNode: any) => {
-        if (domNode.type === 'tag' && domNode.name === 'a') {
+      replace: (domNode: DOMNode) => {
+        if (domNode instanceof Element && domNode.name === 'a') {
           return (
-            <a 
+            <a
               href={domNode.attribs.href}
               target="_blank"
               rel="noopener noreferrer"
             >
-              {domToReact(domNode.children)}
+              {domToReact(domNode.children as DOMNode[])}
             </a>
           );
         }
         if (domNode.type === 'text') {
-          const textContent = domNode.data;
-          
+          const textNode = domNode as DOMNode & { data: string };
+          const textContent = textNode.data;
+
           if (textContent.startsWith('&gt; ')) {
             return (
               <blockquote>
                 {domToReact([{
-                  ...domNode,
+                  ...textNode,
                   data: textContent.replace('&gt; ', '')
-                }])}
+                } as DOMNode])}
               </blockquote>
             );
           }
-          
+
           return domToReact([domNode]);
         }
       }

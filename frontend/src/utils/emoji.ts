@@ -1,4 +1,4 @@
-let _unicodeEmoji: Record<string, string> = {};
+const _unicodeEmoji: Record<string, string> = {};
 
 // We'll need to install and import emoji-datasource
 import emojiData from 'emoji-datasource';
