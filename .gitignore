@@ -21,6 +21,11 @@ packages/types/dist/
 # Runtime
 logs/
 
+# Archive data (local snapshots, merge outputs)
+data/
+merged-archive/
+backups/
+
 # Orphaned prototypes (superseded by archive/src/)
 src/config.js
 src/data-load.js
