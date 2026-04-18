@@ -12,24 +12,9 @@ node_modules
 # Build outputs — always rebuilt inside image
 **/dist
 **/out
-**/lib
-
-# Legacy monolith (still in tree until Stage 8)
-src/
-bin/
-static/
-yarn.lock
-exec_archive.sh
-backup.sh
-cleanup.sh
-archive-nginx.conf
-Dockerfile
 
 # Existing data / backups / config from host
 slack-archive/
-slack-archive-new/
-slack-archive-backup/
-archive/slack-archive/
 data/
 backups/
 config/
@@ -47,5 +32,4 @@ coverage/
 
 # Docs (not needed at runtime — keeps layers small)
 docs/
-README.md
 *.md
