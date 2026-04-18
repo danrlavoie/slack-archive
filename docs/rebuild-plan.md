@@ -324,7 +324,7 @@ Goal: running on the real UnRAID box.
 
 **Exit:** The system runs on UnRAID unattended for a full week without intervention.
 
-### Stage 8 — Retire the legacy stack
+### Stage 8 — Retire the legacy stack  *(COMPLETE — 2026-04-18)*
 
 Goal: single codebase.
 
