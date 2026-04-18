@@ -1,10 +1,7 @@
 node_modules
-out
-slack-archive
 .DS_Store
 *.log
 .token
-lib
 .env
 
 # Build output
@@ -25,9 +22,4 @@ logs/
 data/
 merged-archive/
 backups/
-
-# Orphaned prototypes (superseded by archive/src/)
-src/config.js
-src/data-load.js
-src/interfaces.js
-src/retry.js
+slack-archive/
