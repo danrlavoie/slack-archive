@@ -1,171 +1,28 @@
-# Export your Slack workspace as static HTML
+# Slack Archive
 
-Alright, so you want to export all your messages on Slack. You want them in a format that you
-can still enjoy in 20 years. This tool will help you do that.
+A self-hosted Slack workspace archive. Downloads messages, files, avatars, and emoji from the Slack API, stores them as JSON, and serves a browsable web UI.
 
- * **Completely static**: The generated files are pure HTML and will still work in 50 years.
- * **Everything you care about**: This tool downloads messages, files, and avatars.
- * **Nothing you do not care about**: Choose exactly which channels and DMs to download.
- * **All types of conversations**: We'll fetch public channels, private channels, DMs, and multi-person DMs.
- * **Incremental backups**: If you already have local data, we'll extend it - no need to download existing stuff again.
- * **JSON included**: All data is also stored as JSON, so you can consume it with other tools later.
- * **No cloud, free**: Do all of this for free, without giving anyone your information.
- * **Basic search**: Offers basic search functionality.
-
-<img width="1151" alt="Screen Shot 2021-09-09 at 6 43 55 PM" src="https://user-images.githubusercontent.com/1426799/132776566-0f75a1b4-4b9a-4b53-8a39-e44e8a747a68.png">
-
-## Using it
-
-1. Do you already have a user token for your workspace? If not, read on below on how to get a token.
-2. Make sure you have [`node` and `npm`](https://nodejs.org/en/) installed, ideally something newer than Node v14.
-3. Run `yarn install` to install dependencies
-4. Run `yarn prepublishOnly` to compile the project
-5. Run `npx slack-archive`, which will interactively guide you through the options.
-
-```sh
-npx slack-archive
-```
-
-### Parameters
+## Architecture
 
 ```
---automatic:                Don't prompt and automatically fetch all messages from all channels.
---use-previous-channel-config: Fetch messages from channels selected in previous run instead of prompting.
---channel-types             Comma-separated list of channel types to fetch messages from.
-                            (public_channel, private_channel, mpim, im)
---exclude-channels          Comma-separated list of channels to exclude, in automatic mode
---no-backup:                Don't create backups. Not recommended.
---no-search:                Don't create a search file, saving disk space.
---no-file-download:         Don't download files.
---no-slack-connect:         Don't connect to Slack, just generate HTML from local data.
---force-html-generation:    Force regeneration of HTML files. Useful after slack-archive upgrades.
+archive/    → @slack-archive/archiver   CLI that downloads Slack data
+backend/    → @slack-archive/server     Express API serving archive data
+frontend/   → @slack-archive/web        Vite + React 19 SPA
+packages/   → @slack-archive/types      Shared Zod schemas and TypeScript types
 ```
 
-## Making changes to the code
+Two container images, wired together by `docker-compose.yml`:
 
-When you've updated something within /src or /static, just run `yarn prepublishOnly` again to regenerate the built app, then `npx slack-archive` to execute it.
+- **archiver** — one-shot CLI invoked on a schedule. Downloads messages, files, avatars, emoji, and builds a search index. Exits when done.
+- **web** — long-running Express server that serves both the REST API (`/api/*`) and the built frontend SPA on a single port.
 
-## Getting a token
+The two containers share state through a bind-mounted `data/` directory.
 
-In order to download messages from private channels and direct messages, we will need a "user
-token". Slack uses the token to identify what permissions it'll give this app. We used to be able
-to just copy a token out of your Slack app, but now, we'll need to create a custom app and jump
-through a few hoops.
-
-This will be mostly painless, I promise.
-
-### 1) Make a custom app
-
-Head over to https://api.slack.com/apps and `Create New App`. Select `From scratch`.
-Give it a name and choose the workspace you'd like to export.
-
-Then, from the `Features` menu on the left, select `OAuth & Permission`. 
-
-As a redirect URL, enter something random that doesn't actually exist, or a domain you control. For instace:
-
-```
-https://notarealurl.com/
-```
-
-(Note that redirects will take a _very_ long time if using a domain that doesn't actually exist)
-
-Then, add the following `User Token Scopes`:
-
- * channels:history
- * channels:read
- * files:read
- * groups:history
- * groups:read
- * im:history
- * im:read
- * mpim:history
- * mpim:read
- * remote_files:read
- * users:read
-
-Finally, head back to `Basic Information` and make a note of your app's `client
-id` and `client secret`. We'll need both later.
-
-### 2) Authorize
-
-Make sure you have your Slack workspace `URL` (aka team name) and your app's `client id`.
-Then, in a browser, open this URL - replacing `{your-team-name}` and `{your-client-id}`
-with your values.
-
-```
-https://{your-team-name}.slack.com/oauth/authorize?client_id={your-client-id}&scope=client
-```
-
-Confirm everything until Slack sends you to the mentioned non-existent URL. Look at your
-browser's address bar - it should contain an URL that looks like this:
-
-```
-https://notarealurl.com/?code={code}&state=
-```
-
-Copy everything between `?code=` and `&state`. This is your `code`. We'll need it in the
-next step.
-
-Next, we'll exchange your code for a token. To do so, we'll also need your `client secret` 
-from the first step when we created your app. In a browser, open this URL - replacing 
-`{your-team-name}`, `{your-client-id}`, `{your-code}` and `{your-client-secret}` with 
-your values.
-
-```
-https://{your-team-name}.slack.com/api/oauth.access?client_id={your-client-id}&client_secret={your-client-secret}&code={your-code}
-```
-
-Your browser should now be returning some JSON including a token. Make a note of it - that's what we'll use.
-
-When you start the app, you can copy-paste that token into the prompt. You can also `export SLACK_TOKEN={token}` to set an environment variable that will be used instead.
-
-## Automating it
-
-Three shell scripts are provided to allow for automating the archive, backup, and cleanup in cycles.
-
-### exec_archive.sh
-
-This runs the archive process in automatic mode, assuming it has a SLACK_TOKEN available in the environment where it runs. Results are stored within the git repo in the /slack-archive folder.
-
-### backup.sh
-
-This copies the current contents of the repo's /slack-archive folder to $home/slack-archive/slack-archive-YYYY-MM-DD, a date assigned to the date the backup was run (NOT the date the archive was initiallhy taken).
-
-### cleanup.sh
-
-Since Slack archives, with media files included, can take up several gigabytes of storage, this removes old archives. It will only execute if it finds 8 or more backups in the backup directory, and it deletes the oldest backup from disk.
-
-### Putting it together
-
-Set up invocations of exec_archive.sh, backup.sh, and cleanup.sh into a crontab so you're protected in the event the Slack API breaks at some point.
-
-Then, host your current copy of slack-archive on a webserver (i.e. with nginx) if you want to view it from a local network.
-
-## Hosting with nginx
-
-Since nginx runs through systemctl, you can start and restart the service with the root crontab:
-
-```
-sudo crontab -e
-# in the crontab
-@hourly systemctl restart nginx
-```
-
-copy archive-nginx.conf to /etc/nginx/conf.d/archive-nginx.conf and ensure the exec_archive.sh script has executed, to copy your slack archive website to /var/www/slack-archive.
-
-Check your firewall to ensure your preferred security settings are in place, and start nginx to begin serving the website.
-
----
-
-## Docker deployment
-
-The new split architecture (`archive/`, `backend/`, `frontend/`) ships as two container images wired together by a `docker-compose.yml`. The archiver is a one-shot CLI invoked on a schedule; the web container is a long-running process that serves both the REST API and the built frontend SPA on a single port.
-
-### Local quickstart
+## Quick start (Docker)
 
 ```bash
 cp .env.example .env
-# edit .env and set SLACK_TOKEN (or put .token in ./config/)
+# Set SLACK_TOKEN in .env, or place a .token file in ./config/
 mkdir -p data backups config
 
 docker compose build
@@ -175,10 +32,76 @@ docker compose run --rm archiver      # run one archive pass
 
 The `archiver` service uses `profiles: ["archive"]`, so `docker compose up -d` starts only the web container. Run the archiver explicitly with `docker compose run --rm archiver`.
 
-### UnRAID
+## Quick start (local dev)
 
-See [`unraid/README.md`](unraid/README.md) for deployment instructions. The checked-in Docker templates (`unraid/slack-archive-web.xml` and `unraid/slack-archive-archiver.xml`) can be copied to `/boot/config/plugins/dockerMan/templates-user/` and imported via **Docker → Add Container → User templates**.
+Requires Node >= 22 and pnpm.
+
+```bash
+pnpm install          # install all workspace dependencies
+pnpm -r build         # build all packages
+```
+
+Then, in separate terminals:
+
+```bash
+# Terminal 1 — run the archiver once
+cd archive && pnpm start -- --automatic
+
+# Terminal 2 — start the backend API
+cd backend && pnpm dev
+
+# Terminal 3 — start the frontend dev server
+cd frontend && pnpm dev
+```
+
+| Package    | Install  | Dev               | Build        | Test        |
+|------------|----------|-------------------|--------------|-------------|
+| archive/   | pnpm i   | pnpm start        | pnpm build   | pnpm test   |
+| backend/   | pnpm i   | pnpm dev          | pnpm build   | —           |
+| frontend/  | pnpm i   | pnpm dev (Vite)   | pnpm build   | —           |
+
+## Getting a Slack token
+
+You need a Slack **user token** (`xoxp-...`) with these scopes:
+
+- `channels:history`, `channels:read`
+- `groups:history`, `groups:read`
+- `im:history`, `im:read`
+- `mpim:history`, `mpim:read`
+- `files:read`, `remote_files:read`
+- `users:read`
+
+### Steps
+
+1. Go to https://api.slack.com/apps and **Create New App** → **From scratch**.
+2. Under **OAuth & Permissions**, add a redirect URL (e.g., `https://notarealurl.com/`).
+3. Add the user token scopes listed above.
+4. From **Basic Information**, note your **client ID** and **client secret**.
+5. In a browser, open:
+   ```
+   https://{your-team}.slack.com/oauth/authorize?client_id={client-id}&scope=client
+   ```
+6. Authorize the app. You'll be redirected to your redirect URL with a `?code=` parameter — copy it.
+7. Exchange the code for a token:
+   ```
+   https://{your-team}.slack.com/api/oauth.access?client_id={client-id}&client_secret={client-secret}&code={code}
+   ```
+8. The response JSON contains your token. Set it as `SLACK_TOKEN` in `.env` or save it to `config/.token`.
+
+## UnRAID deployment
+
+See [`unraid/README.md`](unraid/README.md) for deployment instructions using UnRAID Docker templates.
 
 Published images:
 - `ghcr.io/danrlavoie/slack-archive-web:latest`
 - `ghcr.io/danrlavoie/slack-archive-archiver:latest`
+
+## Merge scripts
+
+One-shot scripts for merging a legacy slack-archive dataset with the new format live in `archive/src/scripts/`:
+
+```bash
+cd archive && npx tsx src/scripts/merge-legacy.ts <legacy-root> <new-data-dir> <output-dir>
+```
+
+See `docs/superpowers/specs/2026-04-18-legacy-data-merge-design.md` for details.
