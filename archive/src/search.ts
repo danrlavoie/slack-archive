@@ -193,7 +193,7 @@ export async function createSearchIndex(
   outFile: string
 ): Promise<void> {
   const files = getMessageJsonFiles(dataDir);
-  const index: Record<string, { text: string; file: string; ts?: string }> = {};
+  const index: Record<string, { text: string; file: string; ts?: string; thread_ts?: string }> = {};
 
   for (const file of files) {
     let messages: any[];
@@ -205,17 +205,31 @@ export async function createSearchIndex(
       // Not a message file, skip
       continue;
     }
+    const relFile = path.relative(dataDir, file);
     for (const msg of messages) {
       // Use ts as unique ID, fallback to client_msg_id if present
       const id = msg.ts || msg.client_msg_id;
       if (!id) continue;
       const text = extractSearchableText(msg);
-      if (!text) continue;
-      index[id] = {
-        text,
-        file: path.relative(dataDir, file),
-        ts: msg.ts,
-      };
+      if (text) {
+        index[id] = { text, file: relFile, ts: msg.ts };
+      }
+
+      // Index thread replies
+      if (Array.isArray(msg.replies)) {
+        for (const reply of msg.replies) {
+          const replyId = reply.ts || reply.client_msg_id;
+          if (!replyId) continue;
+          const replyText = extractSearchableText(reply);
+          if (!replyText) continue;
+          index[replyId] = {
+            text: replyText,
+            file: relFile,
+            ts: reply.ts,
+            thread_ts: msg.ts,
+          };
+        }
+      }
     }
   }
 

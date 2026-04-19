@@ -89,6 +89,7 @@ export const SearchIndexSchema = z.record(
     text: z.string(),
     file: z.string(),
     ts: z.string().optional(),
+    thread_ts: z.string().optional(),
   }),
 );
 export type SearchIndex = z.infer<typeof SearchIndexSchema>;
