@@ -10,6 +10,7 @@ import {
   getSearchFile,
   getEmojiFile
 } from './utils/data-load.js';
+import { paginateMessages } from './utils/paginate.js';
 import { DATA_DIR, FRONTEND_DIST_DIR } from './config.js';
 
 const app = express();
@@ -32,7 +33,10 @@ app.get('/api/channels', async (req, res) => {
 app.get('/api/messages/:channelId', async (req, res) => {
   try {
     const messages = await getMessages(req.params.channelId);
-    res.json(messages);
+    const { before, after, around } = req.query as Record<string, string | undefined>;
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 250, 1), 1000);
+    const result = paginateMessages(messages, { before, after, around }, limit);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch messages' });
   }
