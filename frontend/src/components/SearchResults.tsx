@@ -94,8 +94,15 @@ export const SearchResults = () => {
 
             return (
               <li key={result.id}>
-                <Link to={`/ws/${workspaceId}/c/${result.channelId}/m/${result.ts}`}>
-                  <div className="search-result-channel">#{result.channelName}</div>
+                <Link to={
+                  result.thread_ts
+                    ? `/ws/${workspaceId}/c/${result.channelId}/t/${result.thread_ts}/m/${result.ts}`
+                    : `/ws/${workspaceId}/c/${result.channelId}/m/${result.ts}`
+                }>
+                  <div className="search-result-channel">
+                    #{result.channelName}
+                    {result.thread_ts && <span className="search-result-thread"> · in thread</span>}
+                  </div>
                   <div
                     className="search-result-text"
                     dangerouslySetInnerHTML={{ __html: highlightMatch(snippet, query) }}
