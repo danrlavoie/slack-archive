@@ -102,3 +102,12 @@ export interface ChunkInfo {
 }
 
 export type ChunksInfo = Array<ChunkInfo>;
+
+/** Paginated response for channel messages. */
+export interface PaginatedMessages {
+  messages: ArchiveMessage[];
+  hasOlder: boolean;
+  hasNewer: boolean;
+  oldestTs: string;
+  newestTs: string;
+}
