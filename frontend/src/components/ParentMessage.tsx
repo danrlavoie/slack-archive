@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Message } from './Message';
 import { Files } from './Files';
 import { Reaction } from './Reaction/Reaction';
+import { formatRelativeDate } from '../utils/relativeDate';
 
 interface ParentMessageProps {
   message: MessageType;
@@ -30,6 +31,9 @@ export const ParentMessage = ({ message, channelId, users }: ParentMessageProps)
         <div className="thread-link">
           <Link to={`/ws/${workspaceId}/c/${channelId}/t/${message.ts}`}>
             {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
+            {message.latest_reply && (
+              <span className="thread-latest"> · {formatRelativeDate(message.latest_reply)}</span>
+            )}
           </Link>
         </div>
       )}
