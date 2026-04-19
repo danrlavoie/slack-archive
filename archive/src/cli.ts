@@ -123,18 +123,20 @@ export async function main() {
       const sortedUniqueResult = uniqBy(result, "ts").sort((a, b) => {
         return parseFloat(b.ts || "0") - parseFloat(a.ts || "0");
       });
-      // Write the channel message data to disk
-      writeChannelData(channel.id, sortedUniqueResult);
       const { is_archived, is_im, is_user_deleted } = channel;
       if (is_archived || (is_im && is_user_deleted)) {
         channelsAndAuth.channels[channel.id].fullyDownloaded = true;
       }
       channelsAndAuth.channels[channel.id].messages = result.length;
 
-      // Download extra content
-      await downloadExtras(channel, result, users);
-      await downloadEmojis(result, emojis);
+      // Download extra content (threads, users) — mutates message.replies in place
+      await downloadExtras(channel, sortedUniqueResult, users);
+      await downloadEmojis(sortedUniqueResult, emojis);
       await downloadAvatars();
+
+      // Write the channel message data to disk (after replies are populated)
+      writeChannelData(channel.id, sortedUniqueResult);
+
       // Download files. This needs to run after the messages are saved to disk
       // since it uses the message data to find which files to download.
       await downloadFilesForChannel(channel.id);
