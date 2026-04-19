@@ -3,7 +3,9 @@
  * Returns strings like "2 hours ago", "yesterday", "3 days ago", "Mar 15".
  */
 export function formatRelativeDate(ts: string): string {
-  const date = new Date(Number(ts) * 1000);
+  const epoch = Number(ts) * 1000;
+  if (!isFinite(epoch)) return "";
+  const date = new Date(epoch);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMinutes = Math.floor(diffMs / 60_000);

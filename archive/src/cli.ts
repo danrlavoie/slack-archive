@@ -135,7 +135,7 @@ export async function main() {
       await downloadAvatars();
 
       // Write the channel message data to disk (after replies are populated)
-      writeChannelData(channel.id, sortedUniqueResult);
+      await writeChannelData(channel.id, sortedUniqueResult);
 
       // Download files. This needs to run after the messages are saved to disk
       // since it uses the message data to find which files to download.
