@@ -1,17 +1,29 @@
 import axios from 'axios';
-import type { ArchiveMessage, Channel, Users, Emojis, SearchIndex } from '@slack-archive/types';
+import type { ArchiveMessage, Channel, Users, Emojis, SearchIndex, PaginatedMessages } from '@slack-archive/types';
 
 const api = axios.create({
   baseURL: '/api'
 });
+
+export interface MessageCursorParams {
+  before?: string;
+  after?: string;
+  around?: string;
+  limit?: number;
+}
 
 export const getChannels = async (): Promise<Channel[]> => {
   const { data } = await api.get('/channels');
   return data;
 };
 
-export const getMessages = async (channelId: string): Promise<ArchiveMessage[]> => {
-  const { data } = await api.get(`/messages/${channelId}`);
+export const getMessages = async (
+  channelId: string,
+  cursor?: MessageCursorParams,
+): Promise<PaginatedMessages> => {
+  const { data } = await api.get(`/messages/${channelId}`, {
+    params: cursor,
+  });
   return data;
 };
 
