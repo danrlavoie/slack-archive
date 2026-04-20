@@ -533,3 +533,35 @@ audio, video {
   color: #616061;
   font-size: 13px;
 }
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  &-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  &-logo {
+    width: 44px;
+    height: 44px;
+  }
+
+  &-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1d1c1d;
+    letter-spacing: -0.5px;
+  }
+
+  &-hint {
+    color: #616061;
+    font-size: 15px;
+  }
+}

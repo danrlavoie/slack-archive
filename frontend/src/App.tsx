@@ -4,6 +4,7 @@ import { WorkspaceLayout } from './components/WorkspaceLayout';
 import { ChannelView } from './components/ChannelView';
 import { ThreadView } from './components/ThreadView';
 import { SearchResults } from './components/SearchResults';
+import { WelcomePage } from './components/WelcomePage';
 import './styles/main.scss';
 
 const queryClient = new QueryClient();
@@ -16,6 +17,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/ws/default/" replace />} />
             <Route path="/ws/:workspaceId" element={<WorkspaceLayout />}>
+              <Route index element={<WelcomePage />} />
               <Route path="c/:channelId" element={<ChannelView />} />
               <Route path="c/:channelId/m/:messageTs" element={<ChannelView />} />
               <Route path="c/:channelId/t/:threadTs" element={<ThreadView />} />
