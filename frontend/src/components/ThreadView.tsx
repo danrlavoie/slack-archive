@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { getChannels, getMessages, getUsers } from '../api/slack';
 import { Header } from './Header';
 import { Message } from './Message';
-import { Files } from './Files';
 import { Reaction } from './Reaction/Reaction';
 import { useMessageAnchor } from '../hooks/useMessageAnchor';
 
@@ -54,7 +53,6 @@ export const ThreadView = () => {
   }
 
   const replies = parentMessage.replies ?? [];
-  const hasFiles = !!parentMessage.files?.length;
 
   return (
     <div id="messages">
@@ -66,8 +64,7 @@ export const ThreadView = () => {
 
       <div className="messages-list">
         <div className="thread-parent">
-          <Message message={parentMessage} users={users} />
-          {hasFiles && <Files message={parentMessage} channelId={channelId!} />}
+          <Message message={parentMessage} channelId={channelId!} users={users} />
           {parentMessage.reactions?.map((reaction) => (
             <Reaction
               key={reaction.name}
@@ -84,7 +81,7 @@ export const ThreadView = () => {
             </div>
             {replies.map(reply => (
               <div key={reply.ts} className="thread-reply">
-                <Message message={reply} users={users} />
+                <Message message={reply} channelId={channelId!} users={users} />
               </div>
             ))}
           </div>

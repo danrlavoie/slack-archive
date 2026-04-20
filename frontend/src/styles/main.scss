@@ -245,6 +245,13 @@ audio, video {
   }
 }
 
+.files {
+  border-left: 4px solid lightgray;
+  border-radius: 2px;
+  padding-left: 8px;
+  margin-top: 4px;
+}
+
 .file {
   max-height: 270px;
   margin-right: 10px;

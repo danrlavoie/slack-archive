@@ -2,17 +2,20 @@ import type { Message as MessageType, Users } from '@slack-archive/types';
 import { Link, useParams } from 'react-router-dom';
 import { Avatar } from './Avatar';
 import { Attachment } from './Attachment';
+import { Files } from './Files';
 import { formatTimestamp } from '../utils/timestamp';
 import { getName } from '../utils/users';
 import { SlackText } from './SlackText';
 
 interface MessageProps {
   message: MessageType;
+  channelId?: string;
   users: Users;
 }
 
-export const Message = ({ message, users }: MessageProps) => {
-  const { workspaceId, channelId, threadTs } = useParams();
+export const Message = ({ message, channelId: channelIdProp, users }: MessageProps) => {
+  const { workspaceId, channelId: channelIdParam, threadTs } = useParams();
+  const channelId = channelIdProp || channelIdParam;
   const username = getName(message.user, users);
 
   // Build the deep link URL for this message's timestamp
@@ -39,6 +42,7 @@ export const Message = ({ message, users }: MessageProps) => {
         <div>
           <SlackText text={message.text || ''} users={users} />
           {attachments}
+          {channelId && <Files message={message} channelId={channelId} />}
         </div>
       </div>
     </div>
