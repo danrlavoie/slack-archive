@@ -515,3 +515,14 @@ audio, video {
     background-color: transparent;
   }
 }
+
+.scroll-sentinel {
+  height: 1px;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 12px;
+  color: #616061;
+  font-size: 13px;
+}
