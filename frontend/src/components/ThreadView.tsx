@@ -10,8 +10,8 @@ export const ThreadView = () => {
   const { workspaceId, channelId, threadTs } = useParams();
 
   const { isLoading, data: messagesData } = useQuery({
-    queryKey: ['messages', channelId],
-    queryFn: () => getMessages(channelId!),
+    queryKey: ['messages', channelId, threadTs],
+    queryFn: () => getMessages(channelId!, threadTs ? { around: threadTs } : undefined),
     enabled: !!channelId
   });
 
