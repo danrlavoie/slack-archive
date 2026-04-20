@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { getMessages } from '../api/slack';
-import type { PaginatedMessages } from '@slack-archive/types';
 import type { ArchiveMessage } from '@slack-archive/types';
 
 const PAGE_SIZE = 250;

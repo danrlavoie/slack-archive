@@ -10,11 +10,13 @@ import { useMessageAnchor } from '../hooks/useMessageAnchor';
 export const ThreadView = () => {
   const { workspaceId, channelId, threadTs } = useParams();
 
-  const { isLoading, data: messages = [] } = useQuery({
+  const { isLoading, data: messagesData } = useQuery({
     queryKey: ['messages', channelId],
     queryFn: () => getMessages(channelId!),
     enabled: !!channelId
   });
+
+  const messages = messagesData?.messages ?? [];
 
   const { data: users = {} } = useQuery({
     queryKey: ['users'],

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ArchiveMessage, Channel, Users, Emojis, SearchIndex, PaginatedMessages } from '@slack-archive/types';
+import type { Channel, Users, Emojis, SearchIndex, PaginatedMessages } from '@slack-archive/types';
 
 const api = axios.create({
   baseURL: '/api'
