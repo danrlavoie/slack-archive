@@ -1,4 +1,5 @@
 // Standard library imports
+import path from "path";
 import { uniqBy } from "lodash-es";
 
 // Third-party library imports
@@ -70,7 +71,7 @@ export async function main() {
     const token = await getToken();
 
     // Create a backup of the existing data directory
-    const backupDir = `${DATA_DIR}_backup_${Date.now()}`;
+    const backupDir = path.join(BACKUPS_DIR, `data_backup_${Date.now()}`);
     await createBackup(backupDir);
 
     // Load existing data

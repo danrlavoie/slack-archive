@@ -1,5 +1,5 @@
 import trash from "trash";
-import { AUTOMATIC_MODE, DATA_DIR, NO_BACKUP, OUT_DIR } from "../config.js";
+import { AUTOMATIC_MODE, BACKUPS_DIR, DATA_DIR, NO_BACKUP } from "../config.js";
 import fs from "fs-extra";
 import { rimraf } from "rimraf";
 import path from "path";
@@ -148,11 +148,11 @@ export async function deleteOlderBackups() {
         const oldBackupNames: Array<string> = [];
         const oldBackupPaths: Array<string> = [];
 
-        for (const entry of fs.readdirSync(OUT_DIR)) {
+        for (const entry of fs.readdirSync(BACKUPS_DIR)) {
             const isBackup = entry.startsWith("data_backup_");
             if (!isBackup) continue;
 
-            const dir = path.join(OUT_DIR, entry);
+            const dir = path.join(BACKUPS_DIR, entry);
             if (!fs.statSync(dir).isDirectory()) continue;
 
             oldBackupPaths.push(dir);

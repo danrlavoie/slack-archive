@@ -25,3 +25,4 @@ services:
       - ${CONFIG_DIR:-./config}:/app/slack-archive/config:ro
     environment:
       SLACK_TOKEN: ${SLACK_TOKEN:-}
+      TRASH_HARDER: "1"
