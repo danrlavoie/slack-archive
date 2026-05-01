@@ -111,27 +111,18 @@ export async function deleteBackup(backupDir: string) {
         return;
     }
 
-    logger.info(
-        `Cleaning up backup: If anything went wrong, you'll find it in your system's trash.`,
-    );
-
     try {
         // NB: trash doesn't work on many Linux distros
         await trash(backupDir);
         return;
-    } catch (error) {
-        logger.error("Moving backup to trash failed.", { error });
-    }
-
-    if (!process.env["TRASH_HARDER"]) {
-        logger.info(`Set TRASH_HARDER=1 to delete files permanently.`);
-        return;
+    } catch {
+        logger.debug("Moving backup to trash failed, deleting permanently.");
     }
 
     try {
         await rimraf(backupDir);
     } catch (error) {
-        logger.error(`Deleting backup permanently failed. Aborting here.`, { error });
+        logger.error(`Deleting backup permanently failed.`, { error });
     }
 }
 
